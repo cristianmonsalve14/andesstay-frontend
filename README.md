@@ -1,11 +1,18 @@
-# andesstay-frontend
+# AndesStay — Frontend
 
-Frontend de **AndesStay**, plataforma de reservas de hostales y cabañas.
+## Nombre
+
+`andesstay-frontend`
 
 ## Componente
 
-Aplicación Angular con autenticación Microsoft (MSAL / Azure AD).  
-Flujo: **Authorization Code + PKCE**. El frontend solo consume AWS API Gateway (nunca los microservicios directo).
+Frontend web de AndesStay (aplicación Angular).
+
+## Descripción
+
+Aplicación Angular de la plataforma de reservas de hostales y cabañas.  
+Autenticación con Azure AD (MSAL) usando **Authorization Code + PKCE**.  
+El frontend solo consume AWS API Gateway. No llama directo a los microservicios.
 
 ## Integrantes
 
@@ -13,21 +20,17 @@ Flujo: **Authorization Code + PKCE**. El frontend solo consume AWS API Gateway (
 - Héctor Olivares
 - Rolando Lillo
 
+**Dueño del repositorio:** Cristian Monsalve
+
 ## Tecnologías
 
 - Angular
+- TypeScript
 - MSAL Angular (`@azure/msal-angular`, `@azure/msal-browser`)
 - Azure AD (IDaaS)
 
-## Cómo levantar (local)
+## Convención de ramas
 
-```bash
-npm install
-npm start
-```
-
-La app queda en `http://localhost:4200`.
-
-## Dueño del repositorio
-
-Cristian Monsalve. Todo cambio entra por Pull Request sobre `main`.
+- La rama `main` está protegida: **prohibido push directo**.
+- Todo cambio entra por **Pull Request**.
+- Se exige **al menos 1 reviewer** distinto al autor antes del merge.
