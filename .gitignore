@@ -1,0 +1,22 @@
+# Angular / Node
+node_modules/
+dist/
+.angular/
+.cache/
+coverage/
+*.log
+npm-debug.log*
+
+# Entorno y secretos
+.env
+.env.*
+src/environments/environment.local.ts
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# SO
+.DS_Store
+Thumbs.db
