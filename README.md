@@ -24,10 +24,26 @@ El frontend solo consume AWS API Gateway. No llama directo a los microservicios.
 
 ## Tecnologías
 
-- Angular
+- Angular 19
 - TypeScript
 - MSAL Angular (`@azure/msal-angular`, `@azure/msal-browser`)
-- Azure AD (IDaaS)
+- Azure AD / Microsoft Entra ID
+
+## Cómo levantar (local)
+
+```bash
+npm install
+npm start
+```
+
+La app queda en `http://localhost:4200`.
+
+Login de prueba (mismo tenant):
+
+- `andesstay.admin@proyectomonsalve.onmicrosoft.com` (rol Admin)
+- `andesstay.operador@proyectomonsalve.onmicrosoft.com` (rol Operador)
+- `andesstay.cliente@proyectomonsalve.onmicrosoft.com` (rol Cliente)
+- `andesstay.auditor@proyectomonsalve.onmicrosoft.com` (rol Auditor)
 
 ## Convención de ramas
 

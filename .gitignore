@@ -5,6 +5,8 @@ dist/
 .cache/
 coverage/
 target/
+/tmp
+/out-tsc
 
 # Logs
 *.log
@@ -28,7 +30,10 @@ src/environments/environment.local.ts
 
 # IDE y SO
 .idea/
-.vscode/
+.vscode/*
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
 *.swp
 .DS_Store
 Thumbs.db

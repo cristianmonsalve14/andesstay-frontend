@@ -1,0 +1,12 @@
+<section class="card">
+  <header>
+    <div>
+      <p class="eyebrow">AndesStay</p>
+      <h1>Dashboard</h1>
+    </div>
+    <button type="button" (click)="logout()">Cerrar sesión</button>
+  </header>
+  <p><strong>Usuario:</strong> {{ name() }}</p>
+  <p><strong>Roles:</strong> {{ roles().length ? roles().join(', ') : 'sin roles en el token' }}</p>
+  <p class="hint">{{ headline() }}</p>
+</section>
