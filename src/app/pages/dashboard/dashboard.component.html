@@ -9,4 +9,10 @@
   <p><strong>Usuario:</strong> {{ name() }}</p>
   <p><strong>Roles:</strong> {{ roles().length ? roles().join(', ') : 'sin roles en el token' }}</p>
   <p class="hint">{{ headline() }}</p>
+  <div class="me">
+    <p><strong>BFF /api/me:</strong> {{ meStatus() }}</p>
+    @if (meBody()) {
+      <pre>{{ meBody() }}</pre>
+    }
+  </div>
 </section>
