@@ -75,10 +75,12 @@ export class ReservationsComponent implements OnInit {
   }
 
   private async updateStatus(id: string, nextStatus: string, row: Record<string, unknown>): Promise<void> {
-    const previousStatus = String(row['status'] ?? '');
-    const res = await this.api.updateReservationStatus(id, nextStatus.toUpperCase());
+    const previousStatus = this.statusOf(row);
+    const normalizedNextStatus = nextStatus.toUpperCase();
+    const res = await this.api.updateReservationStatus(id, normalizedNextStatus);
     if (res.status === 'ok') {
-      row['status'] = nextStatus.toUpperCase();
+      row['status'] = normalizedNextStatus;
+      row['estado'] = normalizedNextStatus;
       const current = this.result();
       if (current) {
         this.result.set({
@@ -86,7 +88,9 @@ export class ReservationsComponent implements OnInit {
           items: current.items.map((item) => {
             const itemId = item['id'] ?? item['reservationId'];
             const rowId = row['id'] ?? row['reservationId'];
-            return itemId === rowId ? { ...item, status: nextStatus.toUpperCase() } : item;
+            return itemId === rowId
+              ? { ...item, status: normalizedNextStatus, estado: normalizedNextStatus }
+              : item;
           }),
         });
       }
@@ -94,6 +98,7 @@ export class ReservationsComponent implements OnInit {
     }
 
     row['status'] = previousStatus;
+    row['estado'] = previousStatus;
     const current = this.result();
     if (current) {
       this.result.set({
