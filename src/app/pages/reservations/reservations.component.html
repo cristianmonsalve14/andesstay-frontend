@@ -31,7 +31,7 @@
                 <label class="status-picker">
                   Estado
                   <select [value]="statusOf(row)" (change)="changeStatus(row, $event)">
-                    @for (status of statusOptions; track status) {
+                    @for (status of statusOptionsFor(row); track status) {
                       <option [value]="status">{{ status }}</option>
                     }
                   </select>

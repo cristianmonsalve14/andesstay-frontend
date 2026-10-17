@@ -21,7 +21,19 @@ export class ReservationsComponent implements OnInit {
   readonly roles = signal<string[]>([]);
   readonly canManageStatus = signal(false);
 
-  readonly statusOptions = ['PENDIENTE', 'CONFIRMADA', 'CANCELADA'];
+  statusOptionsFor(row: Record<string, unknown>): string[] {
+    const current = this.statusOf(row).toUpperCase();
+    const transitions: Record<string, string[]> = {
+      CREADA: ['CONFIRMADA', 'CANCELADA'],
+      CONFIRMADA: ['CHECKIN_PENDIENTE', 'CANCELADA'],
+      CHECKIN_PENDIENTE: ['EN_ESTADIA', 'CANCELADA'],
+      EN_ESTADIA: ['CHECKOUT'],
+      CHECKOUT: [],
+      CANCELADA: [],
+    };
+
+    return Array.from(new Set([current, ...(transitions[current] ?? [])].filter(Boolean)));
+  }
 
   ngOnInit(): void {
     this.roles.set(rolesFromAccount(this.msal.instance.getActiveAccount()));
@@ -47,7 +59,18 @@ export class ReservationsComponent implements OnInit {
   }
 
   statusOf(row: Record<string, unknown>): string {
-    return field(row, ['status', 'estado']) || 'Pedido';
+    const value = field(row, ['status', 'estado']);
+    if (!value) {
+      return 'CREADA';
+    }
+
+    const normalized = value.toUpperCase();
+    const aliases: Record<string, string> = {
+      PEDIDO: 'CREADA',
+      PENDIENTE: 'CREADA',
+    };
+
+    return aliases[normalized] ?? normalized;
   }
 
   guestsOf(row: Record<string, unknown>): string {
@@ -68,6 +91,11 @@ export class ReservationsComponent implements OnInit {
     const nextStatus = target?.value;
     const id = this.idOf(row);
     if (!nextStatus || !id || id === '0') {
+      return;
+    }
+
+    const allowed = this.statusOptionsFor(row);
+    if (!allowed.includes(nextStatus.toUpperCase())) {
       return;
     }
 
