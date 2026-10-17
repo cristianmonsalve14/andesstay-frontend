@@ -7,8 +7,8 @@ export const environment = {
   redirectUri: 'http://localhost:4200',
   apiScopes: ['api://4cd6df9a-e2f7-4024-aea6-dd67c49709bc/access_as_user'],
   /**
-   * Demo local contra el Gateway nuevo de Rolando ($default, sin /prod).
-   * NO subir a GitHub: en main debe quedar localhost.
+   * Gateway local del proyecto.
+   * El valor de AWS solo sirve para demos temporales; en main debe quedar localhost.
    */
-  apiUrl: 'https://u7urdgkjbh.execute-api.us-east-1.amazonaws.com/api',
+  apiUrl: 'http://localhost:8080/api',
 };

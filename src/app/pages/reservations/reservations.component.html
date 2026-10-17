@@ -27,6 +27,16 @@
               @if (guestsOf(row)) {
                 <p>{{ guestsOf(row) }}</p>
               }
+              @if (canManageStatus()) {
+                <label class="status-picker">
+                  Estado
+                  <select [value]="statusOf(row)" (change)="changeStatus(row, $event)">
+                    @for (status of statusOptions; track status) {
+                      <option [value]="status">{{ status }}</option>
+                    }
+                  </select>
+                </label>
+              }
             </div>
           </article>
         }

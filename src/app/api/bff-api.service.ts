@@ -42,6 +42,12 @@ export class BffApiService {
     return this.post(`${environment.apiUrl}/reservations`, '/api/reservations', body);
   }
 
+  updateReservationStatus(id: string, status: string): Promise<BffCallResult> {
+    return this.put(`${environment.apiUrl}/reservations/${id}/status`, `/api/reservations/${id}/status`, {
+      status,
+    });
+  }
+
   private async get(url: string, path: string): Promise<BffCallResult> {
     try {
       const data = await firstValueFrom(this.http.get<unknown>(url));
@@ -67,6 +73,22 @@ export class BffApiService {
         path,
         items: asRecords(data),
         message: 'Reserva enviada al BFF (POST /api/reservations)',
+        raw: stringify(data),
+      };
+    } catch (err) {
+      return fromHttpError(err, path);
+    }
+  }
+
+  private async put(url: string, path: string, body: unknown): Promise<BffCallResult> {
+    try {
+      const data = await firstValueFrom(this.http.put<unknown>(url, body));
+      return {
+        status: 'ok',
+        httpStatus: 200,
+        path,
+        items: asRecords(data),
+        message: 'Estado de reserva actualizado por el BFF (PUT /api/reservations/:id/status)',
         raw: stringify(data),
       };
     } catch (err) {

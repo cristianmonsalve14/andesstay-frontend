@@ -1,6 +1,8 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { MsalService } from '@azure/msal-angular';
 import { BffApiService, BffCallResult } from '../../api/bff-api.service';
+import { canManageReservationStatus, rolesFromAccount } from '../../auth/role.util';
 import { AppShellComponent } from '../../layout/app-shell.component';
 import { unitPhoto } from '../../ui/photos';
 
@@ -13,11 +15,22 @@ import { unitPhoto } from '../../ui/photos';
 })
 export class ReservationsComponent implements OnInit {
   private readonly api = inject(BffApiService);
+  private readonly msal = inject(MsalService);
 
   readonly result = signal<BffCallResult | null>(null);
+  readonly roles = signal<string[]>([]);
+  readonly canManageStatus = signal(false);
+
+  readonly statusOptions = ['PENDIENTE', 'CONFIRMADA', 'CANCELADA'];
 
   ngOnInit(): void {
+    this.roles.set(rolesFromAccount(this.msal.instance.getActiveAccount()));
+    this.canManageStatus.set(canManageReservationStatus(this.roles()));
     void this.load();
+  }
+
+  idOf(row: Record<string, unknown>): string {
+    return field(row, ['id', 'reservationId', 'reservation_id', 'codigo']) || '0';
   }
 
   titleOf(row: Record<string, unknown>): string {
@@ -44,6 +57,39 @@ export class ReservationsComponent implements OnInit {
 
   photoOf(row: Record<string, unknown>, index: number): string {
     return unitPhoto(index, row);
+  }
+
+  changeStatus(row: Record<string, unknown>, event: Event): void {
+    if (!this.canManageStatus()) {
+      return;
+    }
+
+    const target = event.target as HTMLSelectElement | null;
+    const nextStatus = target?.value;
+    const id = this.idOf(row);
+    if (!nextStatus || !id || id === '0') {
+      return;
+    }
+
+    void this.updateStatus(id, nextStatus, row);
+  }
+
+  private async updateStatus(id: string, nextStatus: string, row: Record<string, unknown>): Promise<void> {
+    const res = await this.api.updateReservationStatus(id, nextStatus.toUpperCase());
+    if (res.status === 'ok') {
+      row['status'] = nextStatus.toUpperCase();
+      const current = this.result();
+      if (current) {
+        this.result.set({
+          ...current,
+          items: current.items.map((item) => {
+            const itemId = item['id'] ?? item['reservationId'];
+            const rowId = row['id'] ?? row['reservationId'];
+            return itemId === rowId ? { ...item, status: nextStatus.toUpperCase() } : item;
+          }),
+        });
+      }
+    }
   }
 
   private async load(): Promise<void> {

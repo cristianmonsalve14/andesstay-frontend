@@ -19,3 +19,7 @@ export function canOperateCatalog(roles: string[]): boolean {
 export function canCreateReservation(roles: string[]): boolean {
   return roles.includes('Cliente') || roles.includes('Operador') || roles.includes('Admin');
 }
+
+export function canManageReservationStatus(roles: string[]): boolean {
+  return roles.includes('Operador') || roles.includes('Admin');
+}
