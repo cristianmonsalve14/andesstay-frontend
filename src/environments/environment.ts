@@ -7,8 +7,8 @@ export const environment = {
   redirectUri: 'http://localhost:4200',
   apiScopes: ['api://4cd6df9a-e2f7-4024-aea6-dd67c49709bc/access_as_user'],
   /**
-   * BFF local (Héctor, puerto 8080). Temporal: Rolando reemplaza esto
-   * por la URL del AWS API Gateway cuando esté desplegada.
+   * Gateway local del proyecto.
+   * El valor de AWS solo sirve para demos temporales; en main debe quedar localhost.
    */
   apiUrl: 'http://localhost:8080/api',
 };

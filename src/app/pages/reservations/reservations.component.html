@@ -1,0 +1,83 @@
+<app-shell>
+  <header class="page">
+    <div>
+      <p class="kicker">Huéspedes</p>
+      <h1>Reservas</h1>
+      <p class="lead">
+        Estadías pedidas y su estado. Cliente, operador y admin trabajan acá. Si el microservicio de
+        reservas no está en la EC2, lo verás como servicio caído, no como pantalla vacía.
+      </p>
+    </div>
+    <a class="endpoint" routerLink="/reservas/nueva">Nueva reserva</a>
+  </header>
+
+  @if (!result()) {
+    <p class="panel muted">Cargando reservas…</p>
+  } @else if (result()?.status === 'ok') {
+    <p class="badge ok">{{ result()?.message }}</p>
+    @if ((result()?.items?.length ?? 0) > 0) {
+      <div class="stays">
+        @for (row of result()!.items; track $index) {
+          <article class="stay">
+            <img [src]="photoOf(row, $index)" [alt]="titleOf(row)" />
+            <div>
+              <p class="status">{{ statusOf(row) }}</p>
+              <h2>{{ titleOf(row) }}</h2>
+              <p>{{ datesOf(row) }}</p>
+              @if (guestsOf(row)) {
+                <p>{{ guestsOf(row) }}</p>
+              }
+              @if (canManageStatus()) {
+                <label class="status-picker">
+                  Estado
+                  <select [value]="statusOf(row)" (change)="changeStatus(row, $event)">
+                    @for (status of statusOptionsFor(row); track status) {
+                      <option [value]="status">{{ status }}</option>
+                    }
+                  </select>
+                </label>
+              }
+            </div>
+          </article>
+        }
+      </div>
+    } @else {
+      <div class="empty">
+        <img src="/photos/cabin-3.png" alt="Cabaña disponible" />
+        <div>
+          <h2>Aún no tienes una estadía</h2>
+          <p>Elige una cabaña, las fechas y cuántos van. El pedido sale por el Gateway.</p>
+          <a routerLink="/reservas/nueva">Reservar una cabaña</a>
+        </div>
+      </div>
+    }
+  } @else if (result()?.status === 'forbidden') {
+    <div class="panel warn">
+      <h2>Acceso restringido</h2>
+      <p>{{ result()?.message }}</p>
+      <p class="meta">{{ result()?.path }} · HTTP {{ result()?.httpStatus }}</p>
+    </div>
+  } @else if (result()?.status === 'unauthorized') {
+    <div class="panel bad">
+      <h2>Sesión no válida</h2>
+      <p>{{ result()?.message }}</p>
+    </div>
+  } @else {
+    <div class="empty">
+      <img src="/photos/hero.png" alt="Cabaña AndesStay" />
+      <div class="panel bad">
+        <h2>Reservas no disponibles</h2>
+        <p>{{ result()?.message }}</p>
+        <p>Si HTTP es 502/503, el servicio de reservas no está desplegado en la EC2.</p>
+        <p><a routerLink="/reservas/nueva">Igual puedes armar el pedido</a></p>
+      </div>
+    </div>
+  }
+
+  @if (result()?.raw && result()?.status !== 'ok') {
+    <details>
+      <summary>Respuesta del API</summary>
+      <pre>{{ result()?.raw }}</pre>
+    </details>
+  }
+</app-shell>

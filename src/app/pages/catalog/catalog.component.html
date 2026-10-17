@@ -1,0 +1,120 @@
+<app-shell>
+  <section class="catalog-hero">
+    <img src="/photos/cabin-1.png" alt="Cabañas AndesStay" />
+    <div class="hero-copy">
+      <p class="kicker">Operación</p>
+      <h1>Catálogo de unidades</h1>
+      <p>Hostales y cabañas que el equipo publica. El Cliente no opera acá: el BFF responde 403 y se ve en esta pantalla.</p>
+      <p class="endpoint">GET /api/catalog/units</p>
+    </div>
+  </section>
+
+  @if (!result()) {
+    <p class="panel muted">Cargando catálogo…</p>
+  } @else if (result()?.status === 'ok') {
+    <p class="badge ok">{{ result()?.message }}</p>
+    @if ((result()?.items?.length ?? 0) > 0) {
+      <div class="cards">
+        @for (row of result()!.items; track $index) {
+          <article class="unit">
+            <div class="photo">
+              <img [src]="photoOf(row, $index)" [alt]="titleOf(row)" />
+              <span>{{ subtitleOf(row) }}</span>
+            </div>
+            <div class="body">
+              <h2>{{ titleOf(row) }}</h2>
+              @if (metaOf(row)) {
+                <p class="meta">{{ metaOf(row) }}</p>
+              }
+              <ul>
+                @for (amenity of amenitiesOf($index); track amenity) {
+                  <li>{{ amenity }}</li>
+                }
+              </ul>
+              <a routerLink="/reservas/nueva">Reservar esta unidad</a>
+            </div>
+          </article>
+        }
+      </div>
+    } @else {
+      <p class="panel">Todavía no hay unidades publicadas en el API. Así se verá el inventario:</p>
+      <div class="cards">
+        @for (unit of showcase; track unit.title) {
+          <article class="unit">
+            <div class="photo">
+              <img [src]="unit.photo" [alt]="unit.title" />
+              <span>{{ unit.subtitle }}</span>
+            </div>
+            <div class="body">
+              <h2>{{ unit.title }}</h2>
+              <p class="meta">{{ unit.meta }}</p>
+              <a routerLink="/reservas/nueva">Reservar esta unidad</a>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  } @else if (result()?.status === 'forbidden') {
+    <div class="split">
+      <img src="/photos/cabin-2.png" alt="" />
+      <div class="panel warn">
+        <h2>Acceso restringido</h2>
+        <p>Tu rol no administra el catálogo. El token pasó el Gateway; el BFF negó el recurso.</p>
+        <p class="meta">{{ result()?.path }} · HTTP {{ result()?.httpStatus }}</p>
+        <p><a routerLink="/reservas">Ir a mis reservas</a></p>
+      </div>
+    </div>
+    <h2 class="gallery-title">Cabañas que opera el equipo</h2>
+    <div class="cards">
+      @for (unit of showcase; track unit.title) {
+        <article class="unit">
+          <div class="photo">
+            <img [src]="unit.photo" [alt]="unit.title" />
+            <span>{{ unit.subtitle }}</span>
+          </div>
+          <div class="body">
+            <h2>{{ unit.title }}</h2>
+            <p class="meta">{{ unit.meta }}</p>
+          </div>
+        </article>
+      }
+    </div>
+  } @else if (result()?.status === 'unauthorized') {
+    <div class="panel bad">
+      <h2>Sesión no válida</h2>
+      <p>{{ result()?.message }}</p>
+    </div>
+  } @else {
+    <div class="split">
+      <img src="/photos/hero.png" alt="" />
+      <div class="panel bad">
+        <h2>Catálogo no disponible</h2>
+        <p>{{ result()?.message }}</p>
+        <p class="meta">Cuando el BFF esté arriba, acá aparecen las unidades reales.</p>
+      </div>
+    </div>
+    <h2 class="gallery-title">Así se ve el inventario</h2>
+    <div class="cards">
+      @for (unit of showcase; track unit.title) {
+        <article class="unit">
+          <div class="photo">
+            <img [src]="unit.photo" [alt]="unit.title" />
+            <span>{{ unit.subtitle }}</span>
+          </div>
+          <div class="body">
+            <h2>{{ unit.title }}</h2>
+            <p class="meta">{{ unit.meta }}</p>
+            <a routerLink="/reservas/nueva">Reservar esta unidad</a>
+          </div>
+        </article>
+      }
+    </div>
+  }
+
+  @if (result()?.raw && result()?.status !== 'ok') {
+    <details>
+      <summary>Respuesta del API</summary>
+      <pre>{{ result()?.raw }}</pre>
+    </details>
+  }
+</app-shell>

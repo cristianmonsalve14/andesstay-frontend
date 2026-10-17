@@ -1,0 +1,27 @@
+<div class="shell">
+  <header class="top">
+    <div class="brand-block">
+      <span class="mark" aria-hidden="true"></span>
+      <div>
+        <p class="brand">AndesStay</p>
+        <p class="who">{{ name }} <span class="pill">{{ roles }}</span></p>
+      </div>
+    </div>
+    <nav>
+      <a routerLink="/dashboard" routerLinkActive="active">Inicio</a>
+      <a routerLink="/catalogo" routerLinkActive="active">Catálogo</a>
+      <a routerLink="/reservas" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Reservas</a>
+      @if (showNewReservation()) {
+        <a routerLink="/reservas/nueva" routerLinkActive="active">Nueva</a>
+      }
+    </nav>
+    <button type="button" (click)="logout()">Cerrar sesión</button>
+  </header>
+  <main>
+    <ng-content />
+  </main>
+  <footer>
+    <p>AndesStay · Cajón del Maipo</p>
+    <p>Reservas e inventario solo por API Gateway. El browser no llama al microservicio.</p>
+  </footer>
+</div>

@@ -1,0 +1,65 @@
+<app-shell>
+  <section class="book">
+    <div class="visual">
+      <img src="/photos/cabin-1.png" alt="Cabaña AndesStay" />
+      <div class="copy">
+        <p class="kicker">Huéspedes</p>
+        <h1>Nueva reserva</h1>
+        <p>Unidad, fechas y huéspedes. El pedido sale por POST /api/reservations al Gateway.</p>
+      </div>
+    </div>
+
+    <div class="side">
+      <a class="back" routerLink="/reservas">Volver al listado</a>
+      <form class="panel" (ngSubmit)="submit()">
+        <label>
+          Unidad (id)
+          <input name="unitId" [(ngModel)]="unitId" required placeholder="ej. CAB-01" />
+        </label>
+        <div class="row">
+          <label>
+            Check-in
+            <input name="checkIn" type="date" [(ngModel)]="checkIn" required />
+          </label>
+          <label>
+            Check-out
+            <input name="checkOut" type="date" [(ngModel)]="checkOut" required />
+          </label>
+        </div>
+        <label>
+          Huéspedes
+          <input name="guests" type="number" min="1" [(ngModel)]="guests" required />
+        </label>
+        <button type="submit" [disabled]="sending()">
+          {{ sending() ? 'Enviando…' : 'Confirmar reserva' }}
+        </button>
+      </form>
+
+      @if (result(); as r) {
+        @if (r.status === 'ok') {
+          <div class="panel okbox">
+            <h2>Pedido enviado</h2>
+            <p>{{ r.message }}</p>
+          </div>
+        } @else if (r.status === 'forbidden') {
+          <div class="panel warn">
+            <h2>Acceso restringido</h2>
+            <p>Este rol no puede crear reservas. HTTP {{ r.httpStatus }}.</p>
+          </div>
+        } @else {
+          <div class="panel bad">
+            <h2>No se pudo crear</h2>
+            <p>{{ r.message }}</p>
+            <p>Con la EC2 apagada o sin microservicio de reservas es normal ver 502/503.</p>
+          </div>
+        }
+        @if (r.raw) {
+          <details>
+            <summary>Respuesta del API</summary>
+            <pre>{{ r.raw }}</pre>
+          </details>
+        }
+      }
+    </div>
+  </section>
+</app-shell>

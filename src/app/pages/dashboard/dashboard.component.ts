@@ -1,13 +1,16 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { MsalService } from '@azure/msal-angular';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { rolesFromAccount } from '../../auth/role.util';
+import { rolesFromAccount, isCliente, canCreateReservation } from '../../auth/role.util';
+import { AppShellComponent } from '../../layout/app-shell.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
+  imports: [AppShellComponent, RouterLink],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })
@@ -20,22 +23,40 @@ export class DashboardComponent implements OnInit {
   readonly roles = computed(() => rolesFromAccount(this.account()));
   readonly headline = computed(() => {
     const roles = this.roles();
-    if (roles.includes('Admin')) {
-      return 'Ocupación y KPIs (vista Admin)';
+    if (roles.includes('Cliente')) {
+      return 'Revisa tus estadías o pide una cabaña. El catálogo operativo no es para este rol.';
     }
     if (roles.includes('Operador')) {
-      return 'Llegadas y salidas del día (vista Operador)';
-    }
-    if (roles.includes('Cliente')) {
-      return 'Tus reservas y estado (vista Cliente)';
+      return 'Llegadas, salidas y reservas del día.';
     }
     if (roles.includes('Auditor')) {
-      return 'Timeline de auditoría (solo lectura)';
+      return 'Consulta de catálogo y reservas en solo lectura.';
+    }
+    if (roles.includes('Admin')) {
+      return 'Catálogo de unidades y visión de reservas del hostal.';
     }
     return 'Sesión iniciada. Aún no hay rol de aplicación en el token.';
   });
+  readonly showNewReservation = computed(() => canCreateReservation(this.roles()));
+
+  isGuest(): boolean {
+    return isCliente(this.roles());
+  }
   readonly meStatus = signal('Cargando GET /api/me…');
   readonly meBody = signal('');
+  readonly sessionKind = computed(() => {
+    const text = this.meStatus();
+    if (text.startsWith('200')) {
+      return 'ok';
+    }
+    if (text.includes('403')) {
+      return 'warn';
+    }
+    if (text.includes('401') || text.includes('503') || text.includes('Sin conexión')) {
+      return 'bad';
+    }
+    return 'idle';
+  });
 
   ngOnInit(): void {
     void this.loadMe();
@@ -85,7 +106,4 @@ export class DashboardComponent implements OnInit {
     );
   }
 
-  logout(): void {
-    this.msal.logoutRedirect();
-  }
 }

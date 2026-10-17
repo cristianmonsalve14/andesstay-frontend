@@ -38,6 +38,13 @@ npm start
 
 La app queda en `http://localhost:4200`.
 
+Pantallas (tras login):
+
+- `/dashboard` — sesión y `GET /api/me`
+- `/catalogo` — `GET /api/catalog/units` (Cliente ve 403 en pantalla)
+- `/reservas` — `GET /api/reservations`
+- `/reservas/nueva` — `POST /api/reservations`
+
 Login de prueba (mismo tenant):
 
 - `andesstay.admin@proyectomonsalve.onmicrosoft.com` (rol Admin)
