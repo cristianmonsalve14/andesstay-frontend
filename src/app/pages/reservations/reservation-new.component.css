@@ -1,0 +1,147 @@
+.book {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.visual {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  min-height: 28rem;
+}
+
+.visual img {
+  width: 100%;
+  height: 100%;
+  min-height: 28rem;
+  object-fit: cover;
+  display: block;
+}
+
+.copy {
+  position: absolute;
+  inset: auto 0 0;
+  padding: 1.8rem 1.4rem;
+  background: linear-gradient(transparent, rgba(16, 14, 10, 0.82));
+  color: #f6f0e6;
+}
+
+.kicker {
+  margin: 0 0 0.3rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.72rem;
+  color: #e0c48a;
+  font-weight: 600;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(1.7rem, 3vw, 2.2rem);
+}
+
+.copy p {
+  margin: 0.45rem 0 0;
+  color: #e4d8c4;
+}
+
+.back {
+  display: inline-block;
+  margin-bottom: 0.85rem;
+  color: var(--forest);
+  font-weight: 600;
+}
+
+.panel {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 1.2rem 1.35rem;
+  display: grid;
+  gap: 0.85rem;
+}
+
+label {
+  display: grid;
+  gap: 0.3rem;
+  font-weight: 600;
+  font-size: 0.88rem;
+}
+
+input {
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font: inherit;
+  background: #fff;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+button {
+  justify-self: start;
+  padding: 0.7rem 1.1rem;
+  border: 0;
+  border-radius: 10px;
+  background: var(--copper);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.6;
+}
+
+.okbox {
+  margin-top: 1rem;
+  border-color: #9dcea8;
+}
+
+.warn {
+  margin-top: 1rem;
+  border-color: #e0b464;
+  background: #fff6e4;
+}
+
+.bad {
+  margin-top: 1rem;
+  border-color: #e8b4b4;
+  background: #fbeeee;
+}
+
+.panel h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+details {
+  margin-top: 0.9rem;
+}
+
+pre {
+  overflow: auto;
+  max-height: 12rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: #efe6d6;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 860px) {
+  .book,
+  .row {
+    grid-template-columns: 1fr;
+  }
+
+  .visual,
+  .visual img {
+    min-height: 16rem;
+  }
+}

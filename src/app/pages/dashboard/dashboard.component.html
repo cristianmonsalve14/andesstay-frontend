@@ -1,18 +1,102 @@
-<section class="card">
-  <header>
-    <div>
-      <p class="eyebrow">AndesStay</p>
-      <h1>Dashboard</h1>
-    </div>
-    <button type="button" (click)="logout()">Cerrar sesión</button>
-  </header>
-  <p><strong>Usuario:</strong> {{ name() }}</p>
-  <p><strong>Roles:</strong> {{ roles().length ? roles().join(', ') : 'sin roles en el token' }}</p>
-  <p class="hint">{{ headline() }}</p>
-  <div class="me">
-    <p><strong>BFF /api/me:</strong> {{ meStatus() }}</p>
-    @if (meBody()) {
-      <pre>{{ meBody() }}</pre>
+<app-shell>
+  @if (isGuest()) {
+    <section class="stay-hero">
+      <img src="/photos/hero.png" alt="Cabaña AndesStay" />
+      <div class="stay-copy">
+        <p class="kicker">Tu estadía</p>
+        <h1>Hola, {{ name() }}</h1>
+        <p class="lede">{{ headline() }}</p>
+        <div class="cta-row">
+          <a class="cta" routerLink="/reservas/nueva">Reservar una cabaña</a>
+          <a class="ghost" routerLink="/reservas">Ver mis reservas</a>
+        </div>
+      </div>
+    </section>
+  } @else {
+    <section class="ops-hero">
+      <img src="/photos/cabin-2.png" alt="Interior AndesStay" />
+      <div>
+        <p class="kicker">Backoffice</p>
+        <h1>Hola, {{ name() }}</h1>
+        <p class="lede">{{ headline() }}</p>
+        <p class="role-note">Rol: <strong>{{ roles().join(', ') }}</strong></p>
+      </div>
+    </section>
+  }
+
+  <section class="grid">
+    @if (isGuest()) {
+      <a class="tile featured" routerLink="/reservas">
+        <img src="/photos/cabin-1.png" alt="" />
+        <div class="tile-body">
+          <p class="tile-kicker">Principal</p>
+          <h2>Mis reservas</h2>
+          <p>Estado de tus estadías. Si el servicio aún no está en la nube, el error se ve acá.</p>
+          <span>Ver reservas</span>
+        </div>
+      </a>
+      <a class="tile" routerLink="/reservas/nueva">
+        <img src="/photos/cabin-3.png" alt="" />
+        <div class="tile-body">
+          <p class="tile-kicker">Pedir</p>
+          <h2>Nueva reserva</h2>
+          <p>Unidad, fechas y huéspedes. Sale por el Gateway, nunca al microservicio directo.</p>
+          <span>Crear reserva</span>
+        </div>
+      </a>
+      <a class="tile" routerLink="/catalogo">
+        <img src="/photos/cabin-2.png" alt="" />
+        <div class="tile-body">
+          <p class="tile-kicker">Permisos</p>
+          <h2>Catálogo interno</h2>
+          <p>No es tu rol. Al abrir verás acceso restringido (403) cuando el BFF esté arriba.</p>
+          <span>Probar permiso</span>
+        </div>
+      </a>
+    } @else {
+      <a class="tile featured" routerLink="/catalogo">
+        <img src="/photos/cabin-1.png" alt="" />
+        <div class="tile-body">
+          <p class="tile-kicker">Operación</p>
+          <h2>Catálogo</h2>
+          <p>Unidades publicadas que el equipo opera.</p>
+          <span>Abrir catálogo</span>
+        </div>
+      </a>
+      <a class="tile" routerLink="/reservas">
+        <img src="/photos/cabin-3.png" alt="" />
+        <div class="tile-body">
+          <p class="tile-kicker">Huéspedes</p>
+          <h2>Reservas</h2>
+          <p>Pedidos de estadía, siempre vía API Gateway.</p>
+          <span>Abrir reservas</span>
+        </div>
+      </a>
+      @if (showNewReservation()) {
+        <a class="tile" routerLink="/reservas/nueva">
+          <img src="/photos/hero.png" alt="" />
+          <div class="tile-body">
+            <p class="tile-kicker">Alta</p>
+            <h2>Nueva reserva</h2>
+            <p>Registrar una estadía. Si el servicio no está, el error queda en la UI.</p>
+            <span>Crear reserva</span>
+          </div>
+        </a>
+      }
     }
-  </div>
-</section>
+  </section>
+
+  <section class="session {{ sessionKind() }}">
+    <div>
+      <p class="tile-kicker">Sesión</p>
+      <h2>Identidad en el BFF</h2>
+      <p>{{ meStatus() }}</p>
+    </div>
+    @if (meBody()) {
+      <details>
+        <summary>Detalle técnico</summary>
+        <pre>{{ meBody() }}</pre>
+      </details>
+    }
+  </section>
+</app-shell>

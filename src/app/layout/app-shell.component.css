@@ -1,0 +1,121 @@
+.shell {
+  max-width: 76rem;
+  margin: 0 auto;
+  padding: 1.25rem 1.25rem 2rem;
+}
+
+.top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 1.25rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  padding: 0.85rem 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--forest);
+  color: #f6f0e6;
+  box-shadow: 0 12px 32px rgba(30, 58, 43, 0.18);
+}
+
+.brand-block {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.mark {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, transparent 49%, #e8d5b0 50%, transparent 51%),
+    linear-gradient(225deg, transparent 49%, #c4a574 50%, transparent 51%),
+    var(--forest-2);
+  border: 1px solid #c4a574;
+}
+
+.brand {
+  margin: 0;
+  font-family: Fraunces, Georgia, serif;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  color: #e8d5b0;
+}
+
+.who {
+  margin: 0.15rem 0 0;
+  font-size: 0.92rem;
+  display: flex;
+  gap: 0.45rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.pill {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: #b4532a;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+nav {
+  display: flex;
+  gap: 0.25rem;
+  background: rgba(0, 0, 0, 0.18);
+  padding: 0.25rem;
+  border-radius: 10px;
+}
+
+nav a {
+  padding: 0.45rem 0.85rem;
+  border-radius: 8px;
+  color: #e8dfcf;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.92rem;
+}
+
+nav a.active,
+nav a:hover {
+  background: #fffaf2;
+  color: var(--forest);
+}
+
+button {
+  padding: 0.5rem 0.95rem;
+  border: 1px solid #c4a574;
+  border-radius: 8px;
+  background: transparent;
+  color: #f6f0e6;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+button:hover {
+  background: rgba(255, 250, 242, 0.12);
+}
+
+footer {
+  margin-top: 2.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+footer p {
+  margin: 0;
+}
+
+footer p + p {
+  margin-top: 0.2rem;
+}

@@ -1,12 +1,47 @@
+:root {
+  --ink: #1b1712;
+  --muted: #5c5348;
+  --paper: #f3ece0;
+  --card: #fffaf2;
+  --line: #d8ccb8;
+  --forest: #1e3a2b;
+  --forest-2: #2d5a40;
+  --copper: #b4532a;
+  --ok: #1f6b3a;
+  --warn: #8a5a12;
+  --bad: #9b2c2c;
+}
+
 html,
 body {
   margin: 0;
   min-height: 100%;
-  font-family: "Segoe UI", system-ui, sans-serif;
-  background: #f5f5f4;
-  color: #1c1917;
+  font-family: Outfit, "Segoe UI", sans-serif;
+  background:
+    radial-gradient(1200px 500px at 10% -10%, #d9c9a8 0%, transparent 55%),
+    linear-gradient(180deg, #e8dfcf 0%, var(--paper) 40%);
+  color: var(--ink);
 }
 
 * {
   box-sizing: border-box;
+}
+
+h1,
+h2,
+.brand-type {
+  font-family: Fraunces, Georgia, serif;
+  font-optical-sizing: auto;
+}
+
+button,
+a {
+  font-family: inherit;
+}
+
+code {
+  font-size: 0.85em;
+  background: #efe6d6;
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
 }
