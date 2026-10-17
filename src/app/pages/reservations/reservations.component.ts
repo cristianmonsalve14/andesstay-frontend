@@ -75,6 +75,7 @@ export class ReservationsComponent implements OnInit {
   }
 
   private async updateStatus(id: string, nextStatus: string, row: Record<string, unknown>): Promise<void> {
+    const previousStatus = String(row['status'] ?? '');
     const res = await this.api.updateReservationStatus(id, nextStatus.toUpperCase());
     if (res.status === 'ok') {
       row['status'] = nextStatus.toUpperCase();
@@ -89,6 +90,16 @@ export class ReservationsComponent implements OnInit {
           }),
         });
       }
+      return;
+    }
+
+    row['status'] = previousStatus;
+    const current = this.result();
+    if (current) {
+      this.result.set({
+        ...current,
+        message: res.message,
+      });
     }
   }
 

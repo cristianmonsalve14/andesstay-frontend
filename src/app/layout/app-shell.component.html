@@ -11,7 +11,9 @@
       <a routerLink="/dashboard" routerLinkActive="active">Inicio</a>
       <a routerLink="/catalogo" routerLinkActive="active">Catálogo</a>
       <a routerLink="/reservas" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Reservas</a>
-      <a routerLink="/reservas/nueva" routerLinkActive="active">Nueva</a>
+      @if (showNewReservation()) {
+        <a routerLink="/reservas/nueva" routerLinkActive="active">Nueva</a>
+      }
     </nav>
     <button type="button" (click)="logout()">Cerrar sesión</button>
   </header>
