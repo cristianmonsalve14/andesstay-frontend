@@ -115,7 +115,8 @@ h3 {
   color: var(--muted);
 }
 
-.operator-panel {
+.operator-panel,
+.auditor-panel {
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 18px;
@@ -203,6 +204,11 @@ h3 {
 .badge.success {
   background: #d6eadb;
   color: #1f5634;
+}
+
+.badge.warn {
+  background: #f8e5b5;
+  color: #7c5b10;
 }
 
 .simple-list {

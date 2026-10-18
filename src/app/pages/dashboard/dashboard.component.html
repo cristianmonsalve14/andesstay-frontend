@@ -85,6 +85,67 @@
     </section>
   }
 
+  @if (isAuditor()) {
+    <section class="auditor-panel">
+      <div class="operator-header">
+        <div>
+          <p class="kicker">Panel auditor</p>
+          <h2>Control y revisión</h2>
+        </div>
+        <button class="mini-action" type="button">Exportar reporte</button>
+      </div>
+
+      <div class="stats-row">
+        <article class="metric-card accent">
+          <span>Ocupación total</span>
+          <strong>84%</strong>
+          <small>Dentro del rango esperado</small>
+        </article>
+        <article class="metric-card">
+          <span>Reservas del día</span>
+          <strong>26</strong>
+          <small>9 con check-in</small>
+        </article>
+        <article class="metric-card">
+          <span>Incidencias</span>
+          <strong>3</strong>
+          <small>1 requiere revisión</small>
+        </article>
+        <article class="metric-card">
+          <span>Completitud</span>
+          <strong>96%</strong>
+          <small>Indicador operativo</small>
+        </article>
+      </div>
+
+      <div class="operator-grid">
+        <article class="list-card">
+          <div class="card-title-row">
+            <h3>Resumen operativo</h3>
+            <span class="badge success">Estable</span>
+          </div>
+          <ul class="simple-list">
+            <li><span>Disponibilidad general</span><strong>95%</strong></li>
+            <li><span>Pagos confirmados</span><strong>22</strong></li>
+            <li><span>Cancelaciones</span><strong>2</strong></li>
+          </ul>
+        </article>
+
+        <article class="list-card">
+          <div class="card-title-row">
+            <h3>Riesgos</h3>
+            <span class="badge warn">Atención</span>
+          </div>
+          <ul class="simple-list">
+            <li><span>Pedido de desayuno</span><strong>Revisar</strong></li>
+            <li><span>Servicio de lavandería</span><strong>Sin novedad</strong></li>
+            <li><span>Pago pendiente</span><strong>1 caso</strong></li>
+          </ul>
+        </article>
+      </div>
+    </section>
+  }
+
   <section class="grid">
     @if (isGuest()) {
       <a class="tile featured" routerLink="/reservas">
@@ -112,6 +173,25 @@
           <h2>Catálogo</h2>
           <p>Descubre las opciones disponibles para tu próxima estadía.</p>
           <span>Ver catálogo</span>
+        </div>
+      </a>
+    } @else if (isAuditor()) {
+      <a class="tile featured" routerLink="/catalogo">
+        <img src="/photos/cabin-1.png" alt="" />
+        <div class="tile-body">
+          <p class="tile-kicker">Supervisión</p>
+          <h2>Catálogo</h2>
+          <p>Revisa la disponibilidad y el estado operativo de las unidades del alojamiento.</p>
+          <span>Ver catálogo</span>
+        </div>
+      </a>
+      <a class="tile" routerLink="/reservas">
+        <img src="/photos/cabin-3.png" alt="" />
+        <div class="tile-body">
+          <p class="tile-kicker">Control</p>
+          <h2>Reservas</h2>
+          <p>Consulta movimientos, incidencias y cumplimiento operacional de las estadías.</p>
+          <span>Revisar reservas</span>
         </div>
       </a>
     } @else {
