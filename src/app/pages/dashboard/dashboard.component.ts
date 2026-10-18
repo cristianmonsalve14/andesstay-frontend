@@ -24,35 +24,35 @@ export class DashboardComponent implements OnInit {
   readonly headline = computed(() => {
     const roles = this.roles();
     if (roles.includes('Cliente')) {
-      return 'Revisa tus estadías o pide una cabaña. El catálogo operativo no es para este rol.';
+      return 'Consulta tus reservas y planea tu próxima escapada.';
     }
     if (roles.includes('Operador')) {
-      return 'Llegadas, salidas y reservas del día.';
+      return 'Gestiona la operación del hostal con claridad y rapidez.';
     }
     if (roles.includes('Auditor')) {
-      return 'Consulta de catálogo y reservas en solo lectura.';
+      return 'Revisa información clave de la operación con una visión general.';
     }
     if (roles.includes('Admin')) {
-      return 'Catálogo de unidades y visión de reservas del hostal.';
+      return 'Gestiona el catálogo y la operación del hostal con una visión general de reservas.';
     }
-    return 'Sesión iniciada. Aún no hay rol de aplicación en el token.';
+    return 'Bienvenido a AndesStay.';
   });
   readonly showNewReservation = computed(() => canCreateReservation(this.roles()));
 
   isGuest(): boolean {
     return isCliente(this.roles());
   }
-  readonly meStatus = signal('Cargando GET /api/me…');
+  readonly meStatus = signal('Verificando sesión…');
   readonly meBody = signal('');
   readonly sessionKind = computed(() => {
     const text = this.meStatus();
-    if (text.startsWith('200')) {
+    if (text.startsWith('Verificada') || text.startsWith('Sesión')) {
       return 'ok';
     }
-    if (text.includes('403')) {
+    if (text.includes('permiso') || text.includes('acceso')) {
       return 'warn';
     }
-    if (text.includes('401') || text.includes('503') || text.includes('Sin conexión')) {
+    if (text.includes('no disponible') || text.includes('sesión') || text.includes('No se pudo')) {
       return 'bad';
     }
     return 'idle';
@@ -66,7 +66,7 @@ export class DashboardComponent implements OnInit {
     const account =
       this.msal.instance.getActiveAccount() ?? this.msal.instance.getAllAccounts()[0] ?? null;
     if (!account) {
-      this.meStatus.set('No hay sesión MSAL');
+      this.meStatus.set('No hay sesión activa');
       return;
     }
     this.msal.instance.setActiveAccount(account);
@@ -84,22 +84,26 @@ export class DashboardComponent implements OnInit {
         })
         .subscribe({
           next: (body) => {
-            this.meStatus.set('200 — JWT aceptado por el BFF');
+            this.meStatus.set('Sesión verificada');
             this.meBody.set(JSON.stringify(body, null, 2));
           },
           error: (err: HttpErrorResponse) => this.showHttpError(err),
         });
     } catch (err) {
-      this.meStatus.set('No se pudo obtener el access token de Azure');
+      this.meStatus.set('No se pudo completar la comprobación de acceso');
       this.meBody.set(err instanceof Error ? err.message : String(err));
     }
   }
 
   private showHttpError(err: HttpErrorResponse): void {
     if (err.status === 0) {
-      this.meStatus.set(`Sin conexión a ${environment.apiUrl}`);
+      this.meStatus.set('Servicio no disponible por el momento');
+    } else if (err.status === 401) {
+      this.meStatus.set('Tu sesión no es válida');
+    } else if (err.status === 403) {
+      this.meStatus.set('No tienes permisos para esta acción');
     } else {
-      this.meStatus.set(`${err.status} ${err.error?.error ?? 'error'}`);
+      this.meStatus.set('No se pudo completar la solicitud');
     }
     this.meBody.set(
       typeof err.error === 'string' ? err.error : JSON.stringify(err.error ?? err.message, null, 2),

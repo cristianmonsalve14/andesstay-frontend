@@ -56,7 +56,7 @@ export class BffApiService {
         httpStatus: 200,
         path,
         items: asRecords(data),
-        message: '200 — el BFF autorizó y proxió al microservicio',
+        message: 'Información disponible.',
         raw: stringify(data),
       };
     } catch (err) {
@@ -72,7 +72,7 @@ export class BffApiService {
         httpStatus: 200,
         path,
         items: asRecords(data),
-        message: 'Reserva enviada al BFF (POST /api/reservations)',
+        message: 'Reserva creada correctamente.',
         raw: stringify(data),
       };
     } catch (err) {
@@ -88,7 +88,7 @@ export class BffApiService {
         httpStatus: 200,
         path,
         items: asRecords(data),
-        message: 'Estado de reserva actualizado por el BFF (PUT /api/reservations/:id/status)',
+        message: 'Estado actualizado correctamente.',
         raw: stringify(data),
       };
     } catch (err) {
@@ -152,7 +152,7 @@ function fromHttpError(err: unknown, path: string): BffCallResult {
       httpStatus: 0,
       path,
       items: [],
-      message: `Sin conexión a ${environment.apiUrl}. El Gateway o la EC2 no responden.`,
+      message: 'El servicio no está disponible por el momento.',
       raw,
     };
   }
@@ -162,7 +162,7 @@ function fromHttpError(err: unknown, path: string): BffCallResult {
       httpStatus: 401,
       path,
       items: [],
-      message: '401 — el Gateway o el BFF no reconocen la sesión.',
+      message: 'Tu sesión no es válida o ha caducado.',
       raw,
     };
   }
@@ -172,8 +172,7 @@ function fromHttpError(err: unknown, path: string): BffCallResult {
       httpStatus: 403,
       path,
       items: [],
-      message:
-        '403 — el token es válido (pasó el Gateway) pero el BFF negó el rol para este recurso.',
+      message: 'No tienes permisos para realizar esta acción.',
       raw,
     };
   }
@@ -182,7 +181,7 @@ function fromHttpError(err: unknown, path: string): BffCallResult {
     httpStatus: err.status,
     path,
     items: [],
-    message: `${err.status} — ${apiMessage}`,
+    message: apiMessage ? `No se pudo completar la operación. ${apiMessage}` : 'No se pudo completar la operación.',
     raw,
   };
 }
