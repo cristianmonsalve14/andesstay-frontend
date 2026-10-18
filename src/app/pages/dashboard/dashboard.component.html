@@ -175,6 +175,25 @@
           <span>Ver catálogo</span>
         </div>
       </a>
+    } @else if (isAuditor()) {
+      <a class="tile featured" routerLink="/catalogo">
+        <img src="/photos/cabin-1.png" alt="" />
+        <div class="tile-body">
+          <p class="tile-kicker">Supervisión</p>
+          <h2>Catálogo</h2>
+          <p>Revisa la disponibilidad y el estado operativo de las unidades del alojamiento.</p>
+          <span>Ver catálogo</span>
+        </div>
+      </a>
+      <a class="tile" routerLink="/reservas">
+        <img src="/photos/cabin-3.png" alt="" />
+        <div class="tile-body">
+          <p class="tile-kicker">Control</p>
+          <h2>Reservas</h2>
+          <p>Consulta movimientos, incidencias y cumplimiento operacional de las estadías.</p>
+          <span>Revisar reservas</span>
+        </div>
+      </a>
     } @else {
       <a class="tile featured" routerLink="/catalogo">
         <img src="/photos/cabin-1.png" alt="" />
