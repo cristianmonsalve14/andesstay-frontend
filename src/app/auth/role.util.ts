@@ -16,6 +16,11 @@ export function canOperateCatalog(roles: string[]): boolean {
   return roles.includes('Admin') || roles.includes('Operador') || roles.includes('Auditor');
 }
 
+export function canAccessRoute(roles: string[], allowedRoles: string[]): boolean {
+  const allowed = new Set(allowedRoles.map((role) => role.trim()));
+  return roles.some((role) => allowed.has(role));
+}
+
 export function canCreateReservation(roles: string[]): boolean {
   return roles.includes('Cliente') || roles.includes('Operador') || roles.includes('Admin');
 }
