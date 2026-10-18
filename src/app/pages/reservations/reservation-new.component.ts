@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { BffApiService, BffCallResult } from '../../api/bff-api.service';
 import { AppShellComponent } from '../../layout/app-shell.component';
+import { SHOWCASE } from '../../ui/photos';
 
 @Component({
   selector: 'app-reservation-new',
@@ -14,7 +15,12 @@ import { AppShellComponent } from '../../layout/app-shell.component';
 export class ReservationNewComponent {
   private readonly api = inject(BffApiService);
 
-  unitId = '';
+  readonly cabinOptions = SHOWCASE.map((unit) => ({
+    value: unit.title,
+    label: unit.title,
+  }));
+
+  unitId = this.cabinOptions[0]?.value ?? '';
   checkIn = '';
   checkOut = '';
   guests = 2;

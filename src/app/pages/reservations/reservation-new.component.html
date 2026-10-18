@@ -5,7 +5,7 @@
       <div class="copy">
         <p class="kicker">Huéspedes</p>
         <h1>Nueva reserva</h1>
-        <p>Unidad, fechas y huéspedes. El pedido sale por POST /api/reservations al Gateway.</p>
+        <p>Elige tu cabaña ideal, define tus fechas y confirma la estadía que deseas vivir.</p>
       </div>
     </div>
 
@@ -13,22 +13,26 @@
       <a class="back" routerLink="/reservas">Volver al listado</a>
       <form class="panel" (ngSubmit)="submit()">
         <label>
-          Unidad (id)
-          <input name="unitId" [(ngModel)]="unitId" required placeholder="ej. CAB-01" />
+          Cabaña
+          <select name="unitId" [(ngModel)]="unitId" required>
+            @for (option of cabinOptions; track option.value) {
+              <option [value]="option.value">{{ option.label }}</option>
+            }
+          </select>
         </label>
         <div class="row">
           <label>
-            Check-in
+            Llegada
             <input name="checkIn" type="date" [(ngModel)]="checkIn" required />
           </label>
           <label>
-            Check-out
+            Salida
             <input name="checkOut" type="date" [(ngModel)]="checkOut" required />
           </label>
         </div>
         <label>
           Huéspedes
-          <input name="guests" type="number" min="1" [(ngModel)]="guests" required />
+          <input name="guests" type="number" min="1" max="12" step="1" [(ngModel)]="guests" required />
         </label>
         <button type="submit" [disabled]="sending()">
           {{ sending() ? 'Enviando…' : 'Confirmar reserva' }}
@@ -38,26 +42,19 @@
       @if (result(); as r) {
         @if (r.status === 'ok') {
           <div class="panel okbox">
-            <h2>Pedido enviado</h2>
+            <h2>Reserva enviada</h2>
             <p>{{ r.message }}</p>
           </div>
         } @else if (r.status === 'forbidden') {
           <div class="panel warn">
             <h2>Acceso restringido</h2>
-            <p>Este rol no puede crear reservas. HTTP {{ r.httpStatus }}.</p>
+            <p>Este perfil no puede crear reservas.</p>
           </div>
         } @else {
           <div class="panel bad">
-            <h2>No se pudo crear</h2>
-            <p>{{ r.message }}</p>
-            <p>Con la EC2 apagada o sin microservicio de reservas es normal ver 502/503.</p>
+            <h2>No se pudo completar la reserva</h2>
+            <p>Intenta nuevamente en unos minutos.</p>
           </div>
-        }
-        @if (r.raw) {
-          <details>
-            <summary>Respuesta del API</summary>
-            <pre>{{ r.raw }}</pre>
-          </details>
         }
       }
     </div>

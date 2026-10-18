@@ -4,8 +4,7 @@
       <p class="kicker">Huéspedes</p>
       <h1>Reservas</h1>
       <p class="lead">
-        Estadías pedidas y su estado. Cliente, operador y admin trabajan acá. Si el microservicio de
-        reservas no está en la EC2, lo verás como servicio caído, no como pantalla vacía.
+        Consulta y gestiona las estadías de tus huéspedes con una visión clara de cada reserva.
       </p>
     </div>
     <a class="endpoint" routerLink="/reservas/nueva">Nueva reserva</a>
@@ -46,7 +45,7 @@
         <img src="/photos/cabin-3.png" alt="Cabaña disponible" />
         <div>
           <h2>Aún no tienes una estadía</h2>
-          <p>Elige una cabaña, las fechas y cuántos van. El pedido sale por el Gateway.</p>
+          <p>Elige la cabaña ideal, las fechas y la cantidad de huéspedes para comenzar tu próxima escapada.</p>
           <a routerLink="/reservas/nueva">Reservar una cabaña</a>
         </div>
       </div>
@@ -54,30 +53,21 @@
   } @else if (result()?.status === 'forbidden') {
     <div class="panel warn">
       <h2>Acceso restringido</h2>
-      <p>{{ result()?.message }}</p>
-      <p class="meta">{{ result()?.path }} · HTTP {{ result()?.httpStatus }}</p>
+      <p>No tienes permisos para gestionar esta sección.</p>
     </div>
   } @else if (result()?.status === 'unauthorized') {
     <div class="panel bad">
       <h2>Sesión no válida</h2>
-      <p>{{ result()?.message }}</p>
+      <p>Vuelve a iniciar sesión para continuar.</p>
     </div>
   } @else {
     <div class="empty">
       <img src="/photos/hero.png" alt="Cabaña AndesStay" />
       <div class="panel bad">
         <h2>Reservas no disponibles</h2>
-        <p>{{ result()?.message }}</p>
-        <p>Si HTTP es 502/503, el servicio de reservas no está desplegado en la EC2.</p>
-        <p><a routerLink="/reservas/nueva">Igual puedes armar el pedido</a></p>
+        <p>Pronto podrás gestionar todas tus estadías desde aquí.</p>
+        <p><a routerLink="/reservas/nueva">Crear una reserva</a></p>
       </div>
     </div>
-  }
-
-  @if (result()?.raw && result()?.status !== 'ok') {
-    <details>
-      <summary>Respuesta del API</summary>
-      <pre>{{ result()?.raw }}</pre>
-    </details>
   }
 </app-shell>

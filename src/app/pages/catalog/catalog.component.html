@@ -4,8 +4,7 @@
     <div class="hero-copy">
       <p class="kicker">Operación</p>
       <h1>Catálogo de unidades</h1>
-      <p>Hostales y cabañas que el equipo publica. El Cliente no opera acá: el BFF responde 403 y se ve en esta pantalla.</p>
-      <p class="endpoint">GET /api/catalog/units</p>
+      <p>Descubre nuestras cabañas y hostales pensados para descansar en la cordillera.</p>
     </div>
   </section>
 
@@ -59,12 +58,11 @@
       <img src="/photos/cabin-2.png" alt="" />
       <div class="panel warn">
         <h2>Acceso restringido</h2>
-        <p>Tu rol no administra el catálogo. El token pasó el Gateway; el BFF negó el recurso.</p>
-        <p class="meta">{{ result()?.path }} · HTTP {{ result()?.httpStatus }}</p>
+        <p>Esta vista está pensada para gestión operativa del hostal.</p>
         <p><a routerLink="/reservas">Ir a mis reservas</a></p>
       </div>
     </div>
-    <h2 class="gallery-title">Cabañas que opera el equipo</h2>
+    <h2 class="gallery-title">Cabañas que forman parte de la experiencia AndesStay</h2>
     <div class="cards">
       @for (unit of showcase; track unit.title) {
         <article class="unit">
@@ -82,15 +80,14 @@
   } @else if (result()?.status === 'unauthorized') {
     <div class="panel bad">
       <h2>Sesión no válida</h2>
-      <p>{{ result()?.message }}</p>
+      <p>Vuelve a iniciar sesión para continuar.</p>
     </div>
   } @else {
     <div class="split">
       <img src="/photos/hero.png" alt="" />
       <div class="panel bad">
-        <h2>Catálogo no disponible</h2>
-        <p>{{ result()?.message }}</p>
-        <p class="meta">Cuando el BFF esté arriba, acá aparecen las unidades reales.</p>
+        <h2>Catálogo temporalmente no disponible</h2>
+        <p>Pronto estarán disponibles nuestras opciones de alojamiento.</p>
       </div>
     </div>
     <h2 class="gallery-title">Así se ve el inventario</h2>
@@ -109,12 +106,5 @@
         </article>
       }
     </div>
-  }
-
-  @if (result()?.raw && result()?.status !== 'ok') {
-    <details>
-      <summary>Respuesta del API</summary>
-      <pre>{{ result()?.raw }}</pre>
-    </details>
   }
 </app-shell>
