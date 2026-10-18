@@ -229,9 +229,33 @@
 
   <section class="session {{ sessionKind() }}">
     <div>
-      <p class="tile-kicker">Sesión</p>
-      <h2>Acceso seguro</h2>
-      <p>Tu experiencia está protegida con autenticación institucional.</p>
+      <p class="tile-kicker">GET /api/me</p>
+      <h2>Identidad en el BFF</h2>
+      <p class="me-status">{{ meStatus() }}</p>
+      @if (bffUser()) {
+        <p class="me-user"><strong>Usuario (BFF):</strong> {{ bffUser() }}</p>
+      } @else {
+        <p class="me-user"><strong>Usuario (MSAL):</strong> {{ name() }}</p>
+      }
+      <p class="me-roles">
+        <strong>Roles:</strong>
+        @if (bffRoles().length > 0) {
+          {{ bffRoles().join(', ') }}
+          <span class="source">(desde backend)</span>
+        } @else if (tokenRoles().length > 0) {
+          {{ tokenRoles().join(', ') }}
+          <span class="source">(desde token Azure; esperando respuesta del BFF)</span>
+        } @else {
+          sin rol
+        }
+      </p>
+      <p class="me-hint">El request lleva <code>Authorization: Bearer</code> al API Gateway.</p>
     </div>
+    @if (meBody()) {
+      <details>
+        <summary>Respuesta de /api/me</summary>
+        <pre>{{ meBody() }}</pre>
+      </details>
+    }
   </section>
 </app-shell>

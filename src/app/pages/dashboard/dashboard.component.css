@@ -313,6 +313,25 @@ h3 {
   border-left-color: var(--warn);
 }
 
+.me-status {
+  font-weight: 600;
+  color: var(--ink) !important;
+  margin-bottom: 0.55rem !important;
+}
+
+.me-user,
+.me-roles,
+.me-hint {
+  margin-top: 0.35rem !important;
+  font-size: 0.92rem;
+}
+
+.source {
+  color: var(--muted);
+  font-weight: 400;
+  font-size: 0.85em;
+}
+
 details {
   margin-top: 0.85rem;
 }

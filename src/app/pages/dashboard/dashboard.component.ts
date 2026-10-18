@@ -7,6 +7,8 @@ import { environment } from '../../../environments/environment';
 import { rolesFromAccount, isCliente, canCreateReservation } from '../../auth/role.util';
 import { AppShellComponent } from '../../layout/app-shell.component';
 
+type MePayload = Record<string, unknown>;
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -20,7 +22,17 @@ export class DashboardComponent implements OnInit {
 
   readonly account = signal(this.msal.instance.getActiveAccount());
   readonly name = computed(() => this.account()?.name ?? this.account()?.username ?? 'Usuario');
+  /** Roles del id token (UI local). El cierre de #14 usa los del BFF cuando llegan. */
+  readonly tokenRoles = computed(() => rolesFromAccount(this.account()));
+  readonly roles = computed(() => {
+    const fromBff = this.bffRoles();
+    return fromBff.length > 0 ? fromBff : this.tokenRoles();
+  });
   readonly displayName = computed(() => {
+    const fromBff = this.bffUser();
+    if (fromBff) {
+      return fromBff;
+    }
     const roles = this.roles();
     if (roles.includes('Operador')) {
       return 'AndesStay Operador';
@@ -36,7 +48,6 @@ export class DashboardComponent implements OnInit {
     }
     return this.name();
   });
-  readonly roles = computed(() => rolesFromAccount(this.account()));
   readonly headline = computed(() => {
     const roles = this.roles();
     if (roles.includes('Cliente')) {
@@ -58,17 +69,25 @@ export class DashboardComponent implements OnInit {
   readonly isAuditor = computed(() => this.roles().includes('Auditor'));
   readonly isAdmin = computed(() => this.roles().includes('Admin'));
   readonly showNewReservation = computed(() => canCreateReservation(this.roles()));
-  readonly meStatus = signal('Verificando sesión…');
+
+  readonly meStatus = signal('Verificando GET /api/me…');
+  readonly meHttp = signal<number | null>(null);
   readonly meBody = signal('');
+  readonly bffUser = signal('');
+  readonly bffRoles = signal<string[]>([]);
   readonly sessionKind = computed(() => {
-    const text = this.meStatus();
-    if (text.startsWith('Verificada') || text.startsWith('Sesión')) {
+    const code = this.meHttp();
+    if (code === 200) {
       return 'ok';
     }
-    if (text.includes('permiso') || text.includes('acceso')) {
+    if (code === 403) {
       return 'warn';
     }
-    if (text.includes('no disponible') || text.includes('sesión') || text.includes('No se pudo')) {
+    if (code === 401 || code === 0 || (code != null && code >= 500)) {
+      return 'bad';
+    }
+    const text = this.meStatus();
+    if (text.includes('No hay sesión') || text.includes('token')) {
       return 'bad';
     }
     return 'idle';
@@ -82,7 +101,8 @@ export class DashboardComponent implements OnInit {
     const account =
       this.msal.instance.getActiveAccount() ?? this.msal.instance.getAllAccounts()[0] ?? null;
     if (!account) {
-      this.meStatus.set('No hay sesión activa');
+      this.meStatus.set('No hay sesión MSAL activa');
+      this.meHttp.set(null);
       return;
     }
     this.msal.instance.setActiveAccount(account);
@@ -95,35 +115,73 @@ export class DashboardComponent implements OnInit {
         }),
       );
       this.http
-        .get(`${environment.apiUrl}/me`, {
+        .get<MePayload>(`${environment.apiUrl}/me`, {
           headers: { Authorization: `Bearer ${token.accessToken}` },
         })
         .subscribe({
           next: (body) => {
-            this.meStatus.set('Sesión verificada');
+            this.meHttp.set(200);
+            this.meStatus.set('200 — JWT aceptado por el BFF (GET /api/me)');
+            this.bffUser.set(pickUser(body) || this.name());
+            this.bffRoles.set(pickRoles(body));
             this.meBody.set(JSON.stringify(body, null, 2));
           },
           error: (err: HttpErrorResponse) => this.showHttpError(err),
         });
     } catch (err) {
-      this.meStatus.set('No se pudo completar la comprobación de acceso');
+      this.meHttp.set(null);
+      this.meStatus.set('No se pudo obtener el access token de Azure');
       this.meBody.set(err instanceof Error ? err.message : String(err));
     }
   }
 
   private showHttpError(err: HttpErrorResponse): void {
+    this.meHttp.set(err.status);
+    this.bffUser.set('');
+    this.bffRoles.set([]);
     if (err.status === 0) {
-      this.meStatus.set('Servicio no disponible por el momento');
+      this.meStatus.set(`Sin conexión a ${environment.apiUrl}/me`);
     } else if (err.status === 401) {
-      this.meStatus.set('Tu sesión no es válida');
+      this.meStatus.set('401 — Token rechazado por Gateway/BFF');
     } else if (err.status === 403) {
-      this.meStatus.set('No tienes permisos para esta acción');
+      this.meStatus.set('403 — Autenticado, pero sin permiso en este recurso');
+    } else if (err.status === 502 || err.status === 503) {
+      this.meStatus.set(`${err.status} — BFF o EC2 no disponible`);
     } else {
-      this.meStatus.set('No se pudo completar la solicitud');
+      this.meStatus.set(`${err.status} — Error en GET /api/me`);
     }
     this.meBody.set(
       typeof err.error === 'string' ? err.error : JSON.stringify(err.error ?? err.message, null, 2),
     );
   }
+}
 
+function pickUser(body: MePayload): string {
+  const keys = ['name', 'nombre', 'preferred_username', 'username', 'email', 'sub', 'oid'];
+  for (const key of keys) {
+    const match = Object.keys(body).find((k) => k.toLowerCase() === key.toLowerCase());
+    const value = match ? body[match] : null;
+    if (typeof value === 'string' && value.trim()) {
+      return value;
+    }
+  }
+  return '';
+}
+
+function pickRoles(body: MePayload): string[] {
+  const keys = ['roles', 'role', 'authorities'];
+  for (const key of keys) {
+    const match = Object.keys(body).find((k) => k.toLowerCase() === key.toLowerCase());
+    if (!match) {
+      continue;
+    }
+    const value = body[match];
+    if (Array.isArray(value)) {
+      return value.map(String).filter(Boolean);
+    }
+    if (typeof value === 'string' && value.trim()) {
+      return value.split(/[,\s]+/).filter(Boolean);
+    }
+  }
+  return [];
 }
