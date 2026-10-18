@@ -17,6 +17,22 @@ export class AppShellComponent {
   readonly rolesList = computed(() => rolesFromAccount(this.account));
   readonly showNewReservation = computed(() => canCreateReservation(this.rolesList()));
   readonly name = this.account?.name ?? this.account?.username ?? 'Usuario';
+  readonly displayName = computed(() => {
+    const roles = this.rolesList();
+    if (roles.includes('Operador')) {
+      return 'AndesStay Operador';
+    }
+    if (roles.includes('Auditor')) {
+      return 'AndesStay Auditor';
+    }
+    if (roles.includes('Admin')) {
+      return 'AndesStay Admin';
+    }
+    if (roles.includes('Cliente')) {
+      return 'AndesStay Cliente';
+    }
+    return this.name;
+  });
   readonly roles = this.rolesList().join(', ') || 'sin rol';
 
   logout(): void {

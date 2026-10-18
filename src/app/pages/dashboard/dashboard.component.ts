@@ -20,6 +20,22 @@ export class DashboardComponent implements OnInit {
 
   readonly account = signal(this.msal.instance.getActiveAccount());
   readonly name = computed(() => this.account()?.name ?? this.account()?.username ?? 'Usuario');
+  readonly displayName = computed(() => {
+    const roles = this.roles();
+    if (roles.includes('Operador')) {
+      return 'AndesStay Operador';
+    }
+    if (roles.includes('Auditor')) {
+      return 'AndesStay Auditor';
+    }
+    if (roles.includes('Admin')) {
+      return 'AndesStay Admin';
+    }
+    if (roles.includes('Cliente')) {
+      return 'AndesStay Cliente';
+    }
+    return this.name();
+  });
   readonly roles = computed(() => rolesFromAccount(this.account()));
   readonly headline = computed(() => {
     const roles = this.roles();
@@ -37,11 +53,11 @@ export class DashboardComponent implements OnInit {
     }
     return 'Bienvenido a AndesStay.';
   });
+  readonly isGuest = computed(() => isCliente(this.roles()));
+  readonly isOperador = computed(() => this.roles().includes('Operador'));
+  readonly isAuditor = computed(() => this.roles().includes('Auditor'));
+  readonly isAdmin = computed(() => this.roles().includes('Admin'));
   readonly showNewReservation = computed(() => canCreateReservation(this.roles()));
-
-  isGuest(): boolean {
-    return isCliente(this.roles());
-  }
   readonly meStatus = signal('Verificando sesión…');
   readonly meBody = signal('');
   readonly sessionKind = computed(() => {

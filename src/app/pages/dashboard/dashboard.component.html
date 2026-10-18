@@ -17,9 +17,70 @@
       <img src="/photos/cabin-2.png" alt="Interior AndesStay" />
       <div>
         <p class="kicker">Backoffice</p>
-        <h1>Hola, {{ name() }}</h1>
+        <h1>Hola, {{ displayName() }}</h1>
         <p class="lede">{{ headline() }}</p>
         <p class="role-note">Rol: <strong>{{ roles().join(', ') }}</strong></p>
+      </div>
+    </section>
+  }
+
+  @if (isOperador()) {
+    <section class="operator-panel">
+      <div class="operator-header">
+        <div>
+          <p class="kicker">Panel operativo</p>
+          <h2>Gestión del día</h2>
+        </div>
+        <button class="mini-action" type="button">Ver agenda</button>
+      </div>
+
+      <div class="stats-row">
+        <article class="metric-card accent">
+          <span>Reservas activas</span>
+          <strong>18</strong>
+          <small>+3 respecto a ayer</small>
+        </article>
+        <article class="metric-card">
+          <span>Check-in hoy</span>
+          <strong>6</strong>
+          <small>2 pendientes</small>
+        </article>
+        <article class="metric-card">
+          <span>Ocupación</span>
+          <strong>82%</strong>
+          <small>Excelente nivel</small>
+        </article>
+        <article class="metric-card">
+          <span>Incidencias</span>
+          <strong>2</strong>
+          <small>Sin riesgo</small>
+        </article>
+      </div>
+
+      <div class="operator-grid">
+        <article class="list-card">
+          <div class="card-title-row">
+            <h3>Llegadas del día</h3>
+            <span class="badge success">Confirmadas</span>
+          </div>
+          <ul class="simple-list">
+            <li><span>Villa del Sol</span><strong>14:00</strong></li>
+            <li><span>Mirador Forestal</span><strong>15:30</strong></li>
+            <li><span>Río Encantado</span><strong>16:00</strong></li>
+          </ul>
+        </article>
+
+        <article class="list-card">
+          <div class="card-title-row">
+            <h3>Seguimiento</h3>
+            <span class="badge">Pendientes</span>
+          </div>
+          <ul class="simple-list">
+            <li><span>Preparar cabaña 3</span><strong>En curso</strong></li>
+            <li><span>Confirmar desayuno</span><strong>Hoy</strong></li>
+            <li><span>Revisión de pagos</span><strong>3</strong></li>
+          </ul>
+        </article>
       </div>
     </section>
   }
