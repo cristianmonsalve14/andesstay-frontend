@@ -101,13 +101,8 @@ export class CatalogComponent implements OnInit {
   }
 
   startCreate(): void {
-    this.editingId.set(null);
-    this.editHint.set('');
-    this.formCode = '';
-    this.formName = '';
-    this.formRate = 100000;
-    this.formAvailable = true;
-    this.actionResult.set(null);
+    this.resetForm();
+    this.clearFeedback();
   }
 
   startEdit(row: Record<string, unknown>): void {
@@ -132,14 +127,15 @@ export class CatalogComponent implements OnInit {
     this.editHint.set(
       `Editando ${this.formName || this.formCode}. Cambia la tarifa o la disponibilidad y guarda.`,
     );
-    this.actionResult.set(null);
+    this.clearFeedback();
     queueMicrotask(() => {
       document.getElementById('catalog-admin-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   }
 
   cancelEdit(): void {
-    this.startCreate();
+    this.resetForm();
+    this.clearFeedback();
   }
 
   async submitUnit(): Promise<void> {
@@ -172,16 +168,32 @@ export class CatalogComponent implements OnInit {
     const res = editingId
       ? await this.api.updateCatalogUnit(editingId, body)
       : await this.api.createCatalogUnit(body);
-    this.actionResult.set(res);
     this.saving.set(false);
 
     if (res.status === 'ok') {
-      this.cancelEdit();
+      // Reset del form sin borrar el feedback de éxito (Héctor review).
+      this.resetForm();
       await this.load();
     }
+    this.actionResult.set(res);
+  }
+
+  /** Solo campos del formulario; no toca actionResult. */
+  private resetForm(): void {
+    this.editingId.set(null);
+    this.editHint.set('');
+    this.formCode = '';
+    this.formName = '';
+    this.formRate = 100000;
+    this.formAvailable = true;
+  }
+
+  private clearFeedback(): void {
+    this.actionResult.set(null);
   }
 
   private async load(): Promise<void> {
+    // Lista siempre desde backend (disponibilidad real post-reserva).
     this.result.set(await this.api.catalogUnits());
   }
 }
