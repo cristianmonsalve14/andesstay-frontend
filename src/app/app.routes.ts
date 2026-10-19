@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { MsalGuard } from '@azure/msal-angular';
+import { RoleGuard } from './auth/role.guard';
 import { LoginComponent } from './pages/login/login.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { CatalogComponent } from './pages/catalog/catalog.component';
@@ -9,9 +10,29 @@ import { ReservationNewComponent } from './pages/reservations/reservation-new.co
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'login' },
   { path: 'login', component: LoginComponent },
-  { path: 'dashboard', component: DashboardComponent, canActivate: [MsalGuard] },
-  { path: 'catalogo', component: CatalogComponent, canActivate: [MsalGuard] },
-  { path: 'reservas/nueva', component: ReservationNewComponent, canActivate: [MsalGuard] },
-  { path: 'reservas', component: ReservationsComponent, canActivate: [MsalGuard] },
+  {
+    path: 'dashboard',
+    component: DashboardComponent,
+    canActivate: [MsalGuard, RoleGuard],
+    data: { roles: ['Cliente', 'Operador', 'Auditor', 'Admin'] },
+  },
+  {
+    path: 'catalogo',
+    component: CatalogComponent,
+    canActivate: [MsalGuard, RoleGuard],
+    data: { roles: ['Cliente', 'Operador', 'Auditor', 'Admin'] },
+  },
+  {
+    path: 'reservas/nueva',
+    component: ReservationNewComponent,
+    canActivate: [MsalGuard, RoleGuard],
+    data: { roles: ['Cliente', 'Operador', 'Admin'] },
+  },
+  {
+    path: 'reservas',
+    component: ReservationsComponent,
+    canActivate: [MsalGuard, RoleGuard],
+    data: { roles: ['Cliente', 'Operador', 'Auditor', 'Admin'] },
+  },
   { path: '**', redirectTo: 'login' },
 ];
