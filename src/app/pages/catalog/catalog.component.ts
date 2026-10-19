@@ -1,57 +1,169 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { MsalService } from '@azure/msal-angular';
 import { BffApiService, BffCallResult } from '../../api/bff-api.service';
+import { canManageCatalog, rolesFromAccount } from '../../auth/role.util';
 import { AppShellComponent } from '../../layout/app-shell.component';
 import { SHOWCASE, unitPhoto } from '../../ui/photos';
 
 @Component({
   selector: 'app-catalog',
   standalone: true,
-  imports: [AppShellComponent, RouterLink],
+  imports: [AppShellComponent, RouterLink, FormsModule],
   templateUrl: './catalog.component.html',
   styleUrl: './catalog.component.css',
 })
 export class CatalogComponent implements OnInit {
   private readonly api = inject(BffApiService);
+  private readonly msal = inject(MsalService);
 
   readonly result = signal<BffCallResult | null>(null);
+  readonly actionResult = signal<BffCallResult | null>(null);
+  readonly canManage = signal(false);
+  readonly saving = signal(false);
+  readonly editingId = signal<string | null>(null);
   readonly showcase = SHOWCASE;
 
+  formCode = '';
+  formName = '';
+  formRate = 100000;
+  formAvailable = true;
+
   ngOnInit(): void {
+    const roles = rolesFromAccount(this.msal.instance.getActiveAccount());
+    this.canManage.set(canManageCatalog(roles));
     void this.load();
   }
 
-  titleOf(row: Record<string, unknown>): string {
-    return field(row, ['name', 'nombre', 'title', 'code', 'id']) || 'Unidad';
+  idOf(row: Record<string, unknown>): string {
+    return field(row, ['id', 'unitId', 'unit_id']) || '';
   }
 
-  subtitleOf(row: Record<string, unknown>): string {
-    const bits = [
-      field(row, ['type', 'tipo', 'category']),
-      field(row, ['location', 'ubicacion', 'city', 'comuna']),
-    ].filter(Boolean);
-    return bits.join(' · ') || 'Hostal / cabaña';
+  titleOf(row: Record<string, unknown>): string {
+    return field(row, ['name', 'nombre', 'title', 'code']) || 'Unidad';
+  }
+
+  codeOf(row: Record<string, unknown>): string {
+    return field(row, ['code', 'codigo']);
+  }
+
+  rateOf(row: Record<string, unknown>): string {
+    const raw = field(row, ['rate', 'tarifa', 'price', 'precio', 'nightlyRate']);
+    if (!raw) {
+      return '';
+    }
+    const n = Number(raw);
+    if (!Number.isFinite(n)) {
+      return raw;
+    }
+    return formatClp(n);
+  }
+
+  availableOf(row: Record<string, unknown>): boolean | null {
+    const match = Object.keys(row).find((k) =>
+      ['available', 'disponible', 'disponibilidad'].includes(k.toLowerCase()),
+    );
+    if (!match) {
+      return null;
+    }
+    const value = row[match];
+    if (typeof value === 'boolean') {
+      return value;
+    }
+    if (typeof value === 'string') {
+      const normalized = value.trim().toLowerCase();
+      if (['true', '1', 'si', 'sí', 'disponible', 'available'].includes(normalized)) {
+        return true;
+      }
+      if (['false', '0', 'no', 'nodisponible', 'unavailable'].includes(normalized)) {
+        return false;
+      }
+    }
+    return null;
+  }
+
+  availabilityLabel(row: Record<string, unknown>): string {
+    const available = this.availableOf(row);
+    if (available === true) {
+      return 'Disponible';
+    }
+    if (available === false) {
+      return 'No disponible';
+    }
+    const status = field(row, ['status', 'estado']);
+    return status ? `Estado ${status}` : '';
   }
 
   photoOf(row: Record<string, unknown>, index: number): string {
     return unitPhoto(index, row);
   }
 
-  metaOf(row: Record<string, unknown>): string {
-    const capacity = field(row, ['capacity', 'capacidad', 'guests', 'cupos']);
-    const status = field(row, ['status', 'estado']);
-    return [capacity ? `Cupos ${capacity}` : '', status ? `Estado ${status}` : '']
-      .filter(Boolean)
-      .join(' · ');
+  startCreate(): void {
+    this.editingId.set(null);
+    this.formCode = '';
+    this.formName = '';
+    this.formRate = 100000;
+    this.formAvailable = true;
+    this.actionResult.set(null);
   }
 
-  amenitiesOf(index: number): string[] {
-    const sets = [
-      ['Chimenea', 'Terraza', 'Vista nieve'],
-      ['Cocina', 'Wifi', 'Bosque'],
-      ['Living', 'Estacionamiento', '2–6 pax'],
-    ];
-    return sets[Math.abs(index) % sets.length];
+  startEdit(row: Record<string, unknown>): void {
+    const id = this.idOf(row);
+    if (!id) {
+      return;
+    }
+    this.editingId.set(id);
+    this.formCode = this.codeOf(row) || '';
+    this.formName = this.titleOf(row);
+    const rateRaw = field(row, ['rate', 'tarifa', 'price', 'precio', 'nightlyRate']);
+    this.formRate = Number(rateRaw) || 100000;
+    this.formAvailable = this.availableOf(row) ?? true;
+    this.actionResult.set(null);
+  }
+
+  cancelEdit(): void {
+    this.editingId.set(null);
+    this.startCreate();
+  }
+
+  async submitUnit(): Promise<void> {
+    if (!this.canManage()) {
+      return;
+    }
+    const code = this.formCode.trim();
+    const name = this.formName.trim();
+    const rate = Number(this.formRate);
+    if (!code || !name || !Number.isFinite(rate) || rate <= 0) {
+      this.actionResult.set({
+        status: 'error',
+        httpStatus: 0,
+        path: '/api/catalog/units',
+        items: [],
+        message: 'Completa código, nombre y una tarifa válida.',
+        raw: '',
+      });
+      return;
+    }
+
+    this.saving.set(true);
+    const body = {
+      code,
+      name,
+      rate,
+      available: !!this.formAvailable,
+    };
+    const editingId = this.editingId();
+    const res = editingId
+      ? await this.api.updateCatalogUnit(editingId, body)
+      : await this.api.createCatalogUnit(body);
+    this.actionResult.set(res);
+    this.saving.set(false);
+
+    if (res.status === 'ok') {
+      this.cancelEdit();
+      await this.load();
+    }
   }
 
   private async load(): Promise<void> {
@@ -67,4 +179,12 @@ function field(row: Record<string, unknown>, keys: string[]): string {
     }
   }
   return '';
+}
+
+function formatClp(value: number): string {
+  return new Intl.NumberFormat('es-CL', {
+    style: 'currency',
+    currency: 'CLP',
+    maximumFractionDigits: 0,
+  }).format(value);
 }

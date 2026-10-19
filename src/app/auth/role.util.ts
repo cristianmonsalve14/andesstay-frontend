@@ -22,6 +22,11 @@ export function canViewCatalog(roles: string[]): boolean {
   return canOperateCatalog(roles);
 }
 
+/** Crear/editar unidades: solo Admin (POST/PUT /api/catalog en el BFF). */
+export function canManageCatalog(roles: string[]): boolean {
+  return roles.includes('Admin');
+}
+
 /** Reservas: Admin, Operador, Cliente. Auditor no entra. */
 export function canViewReservations(roles: string[]): boolean {
   return roles.includes('Admin') || roles.includes('Operador') || roles.includes('Cliente');
