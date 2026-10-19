@@ -157,8 +157,142 @@ h1 {
 }
 
 .unit p {
-  margin: 0;
+  margin: 0.25rem 0 0;
   color: var(--muted);
+}
+
+.rate {
+  color: var(--forest) !important;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.photo span.busy {
+  background: rgba(138, 47, 31, 0.85);
+}
+
+.admin-panel {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 1.2rem 1.35rem;
+  margin-bottom: 1.15rem;
+  scroll-margin-top: 1rem;
+}
+
+.admin-panel.editing {
+  border-color: var(--copper);
+  box-shadow: 0 0 0 2px rgba(137, 89, 54, 0.18);
+}
+
+.edit-hint {
+  margin: 0.35rem 0 0;
+  color: var(--forest);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.admin-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.9rem;
+}
+
+.section-kicker {
+  margin: 0 0 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.7rem;
+  color: var(--copper);
+  font-weight: 700;
+}
+
+.admin-panel h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.admin-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.admin-form label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 600;
+  font-size: 0.88rem;
+}
+
+.admin-form label.check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+
+.admin-form input[type='text'],
+.admin-form input[type='number'],
+.admin-form input:not([type]) {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.admin-form button,
+.edit-btn,
+.ghost-btn {
+  padding: 0.7rem 1rem;
+  border: 0;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.admin-form button {
+  background: linear-gradient(135deg, var(--copper), #b86836);
+  color: #fff;
+}
+
+.admin-form button:disabled {
+  opacity: 0.6;
+}
+
+.edit-btn {
+  margin-top: 0.85rem;
+  background: #1d3d2a;
+  color: #f4f0e7;
+}
+
+.ghost-btn {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--forest);
+}
+
+.action {
+  margin: 0.85rem 0 0;
+  font-weight: 600;
+}
+
+.action.ok {
+  color: var(--ok);
+}
+
+.action.warn {
+  color: #7c5b10;
+}
+
+.action.bad {
+  color: #8a2f1f;
 }
 
 .unit ul {

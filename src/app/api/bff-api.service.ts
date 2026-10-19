@@ -68,6 +68,38 @@ export class BffApiService {
     return this.get(`${environment.apiUrl}/catalog/units`, '/api/catalog/units');
   }
 
+  /** Contrato ms-catalog: code, name, rate, available */
+  createCatalogUnit(body: {
+    code: string;
+    name: string;
+    rate: number;
+    available: boolean;
+  }): Promise<BffCallResult> {
+    return this.post(
+      `${environment.apiUrl}/catalog/units`,
+      '/api/catalog/units',
+      body,
+      'Unidad creada correctamente.',
+    );
+  }
+
+  updateCatalogUnit(
+    id: string,
+    body: {
+      code: string;
+      name: string;
+      rate: number;
+      available: boolean;
+    },
+  ): Promise<BffCallResult> {
+    return this.put(
+      `${environment.apiUrl}/catalog/units/${id}`,
+      `/api/catalog/units/${id}`,
+      body,
+      'Unidad actualizada correctamente.',
+    );
+  }
+
   reservations(): Promise<BffCallResult> {
     return this.get(`${environment.apiUrl}/reservations`, '/api/reservations');
   }
@@ -83,13 +115,21 @@ export class BffApiService {
     guests?: number;
     customerName?: string;
   }): Promise<BffCallResult> {
-    return this.post(`${environment.apiUrl}/reservations`, '/api/reservations', body);
+    return this.post(
+      `${environment.apiUrl}/reservations`,
+      '/api/reservations',
+      body,
+      'Reserva creada correctamente.',
+    );
   }
 
   updateReservationStatus(id: string, status: string): Promise<BffCallResult> {
-    return this.put(`${environment.apiUrl}/reservations/${id}/status`, `/api/reservations/${id}/status`, {
-      status,
-    });
+    return this.put(
+      `${environment.apiUrl}/reservations/${id}/status`,
+      `/api/reservations/${id}/status`,
+      { status },
+      'Estado actualizado correctamente.',
+    );
   }
 
   auditMetrics(): Promise<AuditMetricsResult> {
@@ -171,7 +211,12 @@ export class BffApiService {
     }
   }
 
-  private async post(url: string, path: string, body: unknown): Promise<BffCallResult> {
+  private async post(
+    url: string,
+    path: string,
+    body: unknown,
+    okMessage = 'Operación completada correctamente.',
+  ): Promise<BffCallResult> {
     try {
       const data = await firstValueFrom(this.http.post<unknown>(url, body, { observe: 'response' }));
       return {
@@ -179,7 +224,7 @@ export class BffApiService {
         httpStatus: data.status,
         path,
         items: asRecords(data.body),
-        message: 'Reserva creada correctamente.',
+        message: okMessage,
         raw: stringify(data.body),
       };
     } catch (err) {
@@ -187,7 +232,12 @@ export class BffApiService {
     }
   }
 
-  private async put(url: string, path: string, body: unknown): Promise<BffCallResult> {
+  private async put(
+    url: string,
+    path: string,
+    body: unknown,
+    okMessage = 'Operación completada correctamente.',
+  ): Promise<BffCallResult> {
     try {
       const data = await firstValueFrom(this.http.put<unknown>(url, body));
       return {
@@ -195,7 +245,7 @@ export class BffApiService {
         httpStatus: 200,
         path,
         items: asRecords(data),
-        message: 'Estado actualizado correctamente.',
+        message: okMessage,
         raw: stringify(data),
       };
     } catch (err) {

@@ -4,78 +4,116 @@
     <div class="hero-copy">
       <p class="kicker">Operación</p>
       <h1>Catálogo de unidades</h1>
-      <p>Descubre nuestras cabañas y hostales pensados para descansar en la cordillera.</p>
+      <p>Consulta tarifas y disponibilidad de las cabañas del hostal.</p>
     </div>
   </section>
+
+  @if (canManage()) {
+    <section
+      id="catalog-admin-panel"
+      class="admin-panel"
+      [class.editing]="!!editingId()"
+    >
+      <div class="admin-head">
+        <div>
+          <p class="section-kicker">Administración</p>
+          <h2>{{ editingId() ? 'Editar unidad' : 'Nueva unidad' }}</h2>
+          @if (editHint()) {
+            <p class="edit-hint">{{ editHint() }}</p>
+          }
+        </div>
+        @if (editingId()) {
+          <button type="button" class="ghost-btn" (click)="cancelEdit()">Cancelar edición</button>
+        }
+      </div>
+
+      <form class="admin-form" (ngSubmit)="submitUnit()">
+        <label>
+          Código
+          <input name="code" [(ngModel)]="formCode" placeholder="U-101" required />
+        </label>
+        <label>
+          Nombre
+          <input name="name" [(ngModel)]="formName" placeholder="Suite Cordillera" required />
+        </label>
+        <label>
+          Tarifa (CLP)
+          <input name="rate" type="number" min="1" step="1000" [(ngModel)]="formRate" required />
+        </label>
+        <label class="check">
+          <input name="available" type="checkbox" [(ngModel)]="formAvailable" />
+          Disponible para reserva
+        </label>
+        <button type="submit" [disabled]="saving()">
+          {{ saving() ? 'Guardando…' : editingId() ? 'Guardar cambios' : 'Crear unidad' }}
+        </button>
+      </form>
+
+      @if (actionResult(); as ar) {
+        @if (ar.status === 'ok') {
+          <p class="action ok">{{ ar.message }}</p>
+        } @else if (ar.status === 'forbidden') {
+          <p class="action warn">{{ ar.message }}</p>
+        } @else {
+          <p class="action bad">{{ ar.message }}</p>
+        }
+      }
+    </section>
+  }
 
   @if (!result()) {
     <p class="panel muted">Cargando catálogo…</p>
   } @else if (result()?.status === 'ok') {
-    <p class="badge ok">{{ result()?.message }}</p>
     @if ((result()?.items?.length ?? 0) > 0) {
       <div class="cards">
         @for (row of result()!.items; track $index) {
           <article class="unit">
             <div class="photo">
               <img [src]="photoOf(row, $index)" [alt]="titleOf(row)" />
-              <span>{{ subtitleOf(row) }}</span>
+              @if (availabilityLabel(row)) {
+                <span [class.busy]="availableOf(row) === false">{{ availabilityLabel(row) }}</span>
+              }
             </div>
             <div class="body">
               <h2>{{ titleOf(row) }}</h2>
-              @if (metaOf(row)) {
-                <p class="meta">{{ metaOf(row) }}</p>
+              @if (codeOf(row)) {
+                <p class="meta">Código {{ codeOf(row) }}</p>
               }
-              <ul>
-                @for (amenity of amenitiesOf($index); track amenity) {
-                  <li>{{ amenity }}</li>
-                }
-              </ul>
-              <a routerLink="/reservas/nueva">Reservar esta unidad</a>
+              @if (rateOf(row)) {
+                <p class="rate">{{ rateOf(row) }} / noche</p>
+              }
+              @if (canManage()) {
+                <button type="button" class="edit-btn" (click)="startEdit(row)">Editar</button>
+              } @else {
+                <a routerLink="/reservas/nueva">Reservar esta unidad</a>
+              }
             </div>
           </article>
         }
       </div>
     } @else {
-      <p class="panel">Todavía no hay unidades publicadas en el API. Así se verá el inventario:</p>
+      <p class="panel">Todavía no hay unidades publicadas. Así se verá el inventario:</p>
       <div class="cards">
         @for (unit of showcase; track unit.title) {
           <article class="unit">
             <div class="photo">
               <img [src]="unit.photo" [alt]="unit.title" />
-              <span>{{ unit.subtitle }}</span>
+              <span>Disponible</span>
             </div>
             <div class="body">
               <h2>{{ unit.title }}</h2>
               <p class="meta">{{ unit.meta }}</p>
-              <a routerLink="/reservas/nueva">Reservar esta unidad</a>
+              <p class="rate">Desde {{ unit.nightlyRate }} CLP / noche</p>
             </div>
           </article>
         }
       </div>
     }
   } @else if (result()?.status === 'forbidden') {
-    <div class="split">
-      <img src="/photos/cabin-2.png" alt="" />
-      <div class="panel warn">
-        <h2>Acceso restringido</h2>
-        <p>Esta vista está pensada para gestión operativa del hostal.</p>
-        <p><a routerLink="/reservas">Ir a mis reservas</a></p>
-      </div>
-    </div>
-    <h2 class="gallery-title">Cabañas que forman parte de la experiencia AndesStay</h2>
-    <div class="cards">
-      @for (unit of showcase; track unit.title) {
-        <article class="unit">
-          <div class="photo">
-            <img [src]="unit.photo" [alt]="unit.title" />
-            <span>{{ unit.subtitle }}</span>
-          </div>
-          <div class="body">
-            <h2>{{ unit.title }}</h2>
-            <p class="meta">{{ unit.meta }}</p>
-          </div>
-        </article>
-      }
+    <div class="panel warn">
+      <h2>Acceso restringido</h2>
+      <p>{{ result()?.message || 'No tienes permisos para ver el catálogo operativo.' }}</p>
+      <p><a routerLink="/reservas">Ir a reservas</a></p>
     </div>
   } @else if (result()?.status === 'unauthorized') {
     <div class="panel bad">
@@ -83,28 +121,9 @@
       <p>Vuelve a iniciar sesión para continuar.</p>
     </div>
   } @else {
-    <div class="split">
-      <img src="/photos/hero.png" alt="" />
-      <div class="panel bad">
-        <h2>Catálogo temporalmente no disponible</h2>
-        <p>Pronto estarán disponibles nuestras opciones de alojamiento.</p>
-      </div>
-    </div>
-    <h2 class="gallery-title">Así se ve el inventario</h2>
-    <div class="cards">
-      @for (unit of showcase; track unit.title) {
-        <article class="unit">
-          <div class="photo">
-            <img [src]="unit.photo" [alt]="unit.title" />
-            <span>{{ unit.subtitle }}</span>
-          </div>
-          <div class="body">
-            <h2>{{ unit.title }}</h2>
-            <p class="meta">{{ unit.meta }}</p>
-            <a routerLink="/reservas/nueva">Reservar esta unidad</a>
-          </div>
-        </article>
-      }
+    <div class="panel bad">
+      <h2>Catálogo no disponible</h2>
+      <p>{{ result()?.message || 'No pudimos cargar las unidades.' }}</p>
     </div>
   }
 </app-shell>
