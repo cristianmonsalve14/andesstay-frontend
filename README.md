@@ -12,7 +12,7 @@ Frontend web de AndesStay (aplicación Angular).
 
 Aplicación Angular de la plataforma de reservas de hostales y cabañas.  
 Autenticación con Azure AD (MSAL) usando **Authorization Code + PKCE**.  
-El frontend solo consume AWS API Gateway. No llama directo a los microservicios.
+El frontend solo consume el BFF / API Gateway (`apiUrl`). No llama directo a los microservicios de dominio.
 
 ## Integrantes
 
@@ -36,21 +36,36 @@ npm install
 npm start
 ```
 
-La app queda en `http://localhost:4200`.
+App: `http://localhost:4200`.
 
-Pantallas (tras login):
+Configura `src/environments/environment.ts` → `apiUrl` apuntando al BFF o Gateway (ej. lab local `http://localhost:8083/api`). **No** subir URLs personales ni secretos a `main`.
 
-- `/dashboard` — sesión y `GET /api/me`
-- `/catalogo` — `GET /api/catalog/units` (Cliente ve 403 en pantalla)
-- `/reservas` — `GET /api/reservations`
-- `/reservas/nueva` — `POST /api/reservations`
+## Pantallas (tras login)
 
-Login de prueba (mismo tenant):
+| Ruta | Uso | Roles |
+| --- | --- | --- |
+| `/login` | Inicio de sesión MSAL | público |
+| `/dashboard` | Sesión + `GET /api/me` | Cliente, Operador, Auditor, Admin |
+| `/catalogo` | Unidades, tarifa, disponibilidad; Admin crea/edita | Operación: Admin/Operador; Cliente recibe 403 del BFF |
+| `/reservas` | Listado y cambio de estado | Admin, Operador, Cliente (estado: Admin/Operador) |
+| `/reservas/nueva` | Alta de reserva | Cliente, Operador, Admin |
+| `/auditoria` | Métricas/eventos | Auditor, Admin |
 
-- `andesstay.admin@proyectomonsalve.onmicrosoft.com` (rol Admin)
-- `andesstay.operador@proyectomonsalve.onmicrosoft.com` (rol Operador)
-- `andesstay.cliente@proyectomonsalve.onmicrosoft.com` (rol Cliente)
-- `andesstay.auditor@proyectomonsalve.onmicrosoft.com` (rol Auditor)
+## Usuarios de prueba
+
+Mismo tenant (`proyectomonsalve.onmicrosoft.com`):
+
+- `andesstay.admin@…` → Admin  
+- `andesstay.operador@…` → Operador  
+- `andesstay.cliente@…` → Cliente  
+- `andesstay.auditor@…` → Auditor  
+
+Contraseñas fuera de Git. Detalle de identidad: repo [andesstay-docs](https://github.com/cristianmonsalve14/andesstay-docs) → `IDENTIDAD.md`.
+
+## Docs del equipo
+
+- Arquitectura y matriz: [andesstay-docs](https://github.com/cristianmonsalve14/andesstay-docs)
+- Issue documentación: [docs#3](https://github.com/cristianmonsalve14/andesstay-docs/issues/3)
 
 ## Convención de ramas
 
