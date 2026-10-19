@@ -1,0 +1,129 @@
+<app-shell>
+  <header class="page">
+    <div>
+      <p class="kicker">Control</p>
+      <h1>Auditoría</h1>
+      <p class="lead">
+        Revisa el estado operativo del hostal y el historial de eventos relevantes. Solo consulta; no se
+        modifican reservas ni catálogo desde aquí.
+      </p>
+    </div>
+  </header>
+
+  @if (statusKind() === 'loading') {
+    <p class="panel muted">Cargando panel de control…</p>
+  } @else if (statusKind() === 'forbidden') {
+    <div class="panel warn">
+      <h2>Acceso restringido</h2>
+      <p>Este espacio es solo para el perfil de auditoría y administración.</p>
+    </div>
+  } @else if (statusKind() === 'unauthorized') {
+    <div class="panel bad">
+      <h2>Sesión no válida</h2>
+      <p>Vuelve a iniciar sesión para continuar.</p>
+    </div>
+  } @else if (statusKind() === 'error') {
+    <div class="panel bad">
+      <h2>Panel no disponible</h2>
+      <p>
+        {{ metricsResult()?.message || eventsResult()?.message || 'No pudimos cargar la información de control.' }}
+      </p>
+    </div>
+  } @else {
+    @if (metrics(); as m) {
+      <section class="metrics">
+        <div class="section-head">
+          <div>
+            <p class="kicker">Indicadores</p>
+            <h2>Resumen del día</h2>
+          </div>
+          @if (m.asOf) {
+            <p class="as-of">Actualizado {{ formatWhen(m.asOf) }}</p>
+          }
+        </div>
+
+        <div class="stats-row">
+          <article class="metric-card accent">
+            <span>Ocupación</span>
+            <strong>{{ pct(m.occupationPercent) }}</strong>
+            <small>Disponibilidad {{ pct(m.availabilityPercent) }}</small>
+          </article>
+          <article class="metric-card">
+            <span>Reservas hoy</span>
+            <strong>{{ m.reservationsToday }}</strong>
+            <small>{{ m.checkInsToday }} en estadía</small>
+          </article>
+          <article class="metric-card">
+            <span>Confirmadas</span>
+            <strong>{{ m.paymentsConfirmed }}</strong>
+            <small>{{ m.cancellations }} cancelaciones</small>
+          </article>
+          <article class="metric-card">
+            <span>Incidencias</span>
+            <strong>{{ m.incidentsOpen }}</strong>
+            <small>{{ m.incidentsNeedReview }} por revisar</small>
+          </article>
+          <article class="metric-card">
+            <span>Completitud</span>
+            <strong>{{ pct(m.completenessPercent) }}</strong>
+            <small>Datos de reservas</small>
+          </article>
+        </div>
+
+        @if (m.risks.length > 0) {
+          <div class="risks">
+            <h3>Señales de atención</h3>
+            <ul class="risk-list">
+              @for (risk of m.risks; track risk.label) {
+                <li>
+                  <span class="sev {{ severityClass(risk.severity) }}">{{ risk.severity }}</span>
+                  <div>
+                    <strong>{{ risk.label }}</strong>
+                    <p>{{ risk.status }}</p>
+                  </div>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+      </section>
+    }
+
+    <section class="timeline">
+      <div class="section-head">
+        <div>
+          <p class="kicker">Historial</p>
+          <h2>Eventos de control</h2>
+        </div>
+      </div>
+
+      @if (events().length === 0) {
+        <div class="panel muted">
+          <p>Aún no hay eventos registrados en el historial.</p>
+        </div>
+      } @else {
+        <ul class="event-list">
+          @for (ev of events(); track ev.id) {
+            <li>
+              <div class="event-meta">
+                <span class="sev {{ severityClass(ev.severity) }}">{{ ev.severity }}</span>
+                <time>{{ formatWhen(ev.occurredAt) }}</time>
+              </div>
+              <h3>{{ actionLabel(ev.action) }}</h3>
+              <p class="detail">{{ ev.detail || 'Sin detalle adicional' }}</p>
+              <p class="meta">
+                {{ ev.actor || 'Sistema' }}
+                @if (ev.resourceType) {
+                  · {{ ev.resourceType }}
+                  @if (ev.resourceId) {
+                    #{{ ev.resourceId }}
+                  }
+                }
+              </p>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  }
+</app-shell>

@@ -6,6 +6,7 @@ import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { CatalogComponent } from './pages/catalog/catalog.component';
 import { ReservationsComponent } from './pages/reservations/reservations.component';
 import { ReservationNewComponent } from './pages/reservations/reservation-new.component';
+import { AuditComponent } from './pages/audit/audit.component';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'login' },
@@ -33,6 +34,12 @@ export const routes: Routes = [
     component: ReservationsComponent,
     canActivate: [MsalGuard, RoleGuard],
     data: { roles: ['Cliente', 'Operador', 'Auditor', 'Admin'] },
+  },
+  {
+    path: 'auditoria',
+    component: AuditComponent,
+    canActivate: [MsalGuard, RoleGuard],
+    data: { roles: ['Auditor', 'Admin'] },
   },
   { path: '**', redirectTo: 'login' },
 ];

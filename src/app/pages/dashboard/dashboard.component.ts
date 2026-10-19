@@ -57,7 +57,7 @@ export class DashboardComponent implements OnInit {
       return 'Gestiona la operación del hostal con claridad y rapidez.';
     }
     if (roles.includes('Auditor')) {
-      return 'Revisa información clave de la operación con una visión general.';
+      return 'Puedes revisar la operación con una mirada de control. Catálogo y reservas los gestiona recepción.';
     }
     if (roles.includes('Admin')) {
       return 'Gestiona el catálogo y la operación del hostal con una visión general de reservas.';
@@ -70,9 +70,8 @@ export class DashboardComponent implements OnInit {
   readonly isAdmin = computed(() => this.roles().includes('Admin'));
   readonly showNewReservation = computed(() => canCreateReservation(this.roles()));
 
-  readonly meStatus = signal('Verificando GET /api/me…');
+  readonly meStatus = signal('Comprobando tu sesión…');
   readonly meHttp = signal<number | null>(null);
-  readonly meBody = signal('');
   readonly bffUser = signal('');
   readonly bffRoles = signal<string[]>([]);
   readonly sessionKind = computed(() => {
@@ -86,8 +85,7 @@ export class DashboardComponent implements OnInit {
     if (code === 401 || code === 0 || (code != null && code >= 500)) {
       return 'bad';
     }
-    const text = this.meStatus();
-    if (text.includes('No hay sesión') || text.includes('token')) {
+    if (this.meStatus().includes('sesión')) {
       return 'bad';
     }
     return 'idle';
@@ -101,7 +99,7 @@ export class DashboardComponent implements OnInit {
     const account =
       this.msal.instance.getActiveAccount() ?? this.msal.instance.getAllAccounts()[0] ?? null;
     if (!account) {
-      this.meStatus.set('No hay sesión MSAL activa');
+      this.meStatus.set('No hay una sesión activa');
       this.meHttp.set(null);
       return;
     }
@@ -121,17 +119,15 @@ export class DashboardComponent implements OnInit {
         .subscribe({
           next: (body) => {
             this.meHttp.set(200);
-            this.meStatus.set('200 — JWT aceptado por el BFF (GET /api/me)');
+            this.meStatus.set('Sesión activa');
             this.bffUser.set(pickUser(body) || this.name());
             this.bffRoles.set(pickRoles(body));
-            this.meBody.set(JSON.stringify(body, null, 2));
           },
           error: (err: HttpErrorResponse) => this.showHttpError(err),
         });
-    } catch (err) {
+    } catch {
       this.meHttp.set(null);
-      this.meStatus.set('No se pudo obtener el access token de Azure');
-      this.meBody.set(err instanceof Error ? err.message : String(err));
+      this.meStatus.set('No se pudo confirmar tu sesión');
     }
   }
 
@@ -140,19 +136,16 @@ export class DashboardComponent implements OnInit {
     this.bffUser.set('');
     this.bffRoles.set([]);
     if (err.status === 0) {
-      this.meStatus.set(`Sin conexión a ${environment.apiUrl}/me`);
+      this.meStatus.set('No pudimos conectar con el servicio');
     } else if (err.status === 401) {
-      this.meStatus.set('401 — Token rechazado por Gateway/BFF');
+      this.meStatus.set('Tu sesión no es válida. Vuelve a iniciar sesión.');
     } else if (err.status === 403) {
-      this.meStatus.set('403 — Autenticado, pero sin permiso en este recurso');
+      this.meStatus.set('No tienes permiso para esta acción');
     } else if (err.status === 502 || err.status === 503) {
-      this.meStatus.set(`${err.status} — BFF o EC2 no disponible`);
+      this.meStatus.set('El servicio no está disponible por el momento');
     } else {
-      this.meStatus.set(`${err.status} — Error en GET /api/me`);
+      this.meStatus.set('No se pudo confirmar tu sesión');
     }
-    this.meBody.set(
-      typeof err.error === 'string' ? err.error : JSON.stringify(err.error ?? err.message, null, 2),
-    );
   }
 }
 

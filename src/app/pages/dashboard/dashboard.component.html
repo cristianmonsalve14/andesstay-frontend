@@ -85,67 +85,6 @@
     </section>
   }
 
-  @if (isAuditor()) {
-    <section class="auditor-panel">
-      <div class="operator-header">
-        <div>
-          <p class="kicker">Panel auditor</p>
-          <h2>Control y revisión</h2>
-        </div>
-        <button class="mini-action" type="button">Exportar reporte</button>
-      </div>
-
-      <div class="stats-row">
-        <article class="metric-card accent">
-          <span>Ocupación total</span>
-          <strong>84%</strong>
-          <small>Dentro del rango esperado</small>
-        </article>
-        <article class="metric-card">
-          <span>Reservas del día</span>
-          <strong>26</strong>
-          <small>9 con check-in</small>
-        </article>
-        <article class="metric-card">
-          <span>Incidencias</span>
-          <strong>3</strong>
-          <small>1 requiere revisión</small>
-        </article>
-        <article class="metric-card">
-          <span>Completitud</span>
-          <strong>96%</strong>
-          <small>Indicador operativo</small>
-        </article>
-      </div>
-
-      <div class="operator-grid">
-        <article class="list-card">
-          <div class="card-title-row">
-            <h3>Resumen operativo</h3>
-            <span class="badge success">Estable</span>
-          </div>
-          <ul class="simple-list">
-            <li><span>Disponibilidad general</span><strong>95%</strong></li>
-            <li><span>Pagos confirmados</span><strong>22</strong></li>
-            <li><span>Cancelaciones</span><strong>2</strong></li>
-          </ul>
-        </article>
-
-        <article class="list-card">
-          <div class="card-title-row">
-            <h3>Riesgos</h3>
-            <span class="badge warn">Atención</span>
-          </div>
-          <ul class="simple-list">
-            <li><span>Pedido de desayuno</span><strong>Revisar</strong></li>
-            <li><span>Servicio de lavandería</span><strong>Sin novedad</strong></li>
-            <li><span>Pago pendiente</span><strong>1 caso</strong></li>
-          </ul>
-        </article>
-      </div>
-    </section>
-  }
-
   <section class="grid">
     @if (isGuest()) {
       <a class="tile featured" routerLink="/reservas">
@@ -166,32 +105,16 @@
           <span>Crear reserva</span>
         </div>
       </a>
-      <a class="tile" routerLink="/catalogo">
+    } @else if (isAuditor()) {
+      <a class="tile featured" routerLink="/auditoria">
         <img src="/photos/cabin-2.png" alt="" />
         <div class="tile-body">
-          <p class="tile-kicker">Explorar</p>
-          <h2>Catálogo</h2>
-          <p>Descubre las opciones disponibles para tu próxima estadía.</p>
-          <span>Ver catálogo</span>
-        </div>
-      </a>
-    } @else if (isAuditor()) {
-      <a class="tile featured" routerLink="/catalogo">
-        <img src="/photos/cabin-1.png" alt="" />
-        <div class="tile-body">
-          <p class="tile-kicker">Supervisión</p>
-          <h2>Catálogo</h2>
-          <p>Revisa la disponibilidad y el estado operativo de las unidades del alojamiento.</p>
-          <span>Ver catálogo</span>
-        </div>
-      </a>
-      <a class="tile" routerLink="/reservas">
-        <img src="/photos/cabin-3.png" alt="" />
-        <div class="tile-body">
-          <p class="tile-kicker">Control</p>
-          <h2>Reservas</h2>
-          <p>Consulta movimientos, incidencias y cumplimiento operacional de las estadías.</p>
-          <span>Revisar reservas</span>
+          <p class="tile-kicker">Tu espacio</p>
+          <h2>Vista de auditoría</h2>
+          <p>
+            Este perfil no gestiona catálogo ni reservas. Revisa indicadores e historial de control del hostal.
+          </p>
+          <span>Abrir auditoría</span>
         </div>
       </a>
     } @else {
@@ -224,38 +147,34 @@
           </div>
         </a>
       }
+      @if (isAdmin()) {
+        <a class="tile" routerLink="/auditoria">
+          <img src="/photos/cabin-2.png" alt="" />
+          <div class="tile-body">
+            <p class="tile-kicker">Control</p>
+            <h2>Auditoría</h2>
+            <p>Indicadores e historial de eventos de la operación.</p>
+            <span>Abrir auditoría</span>
+          </div>
+        </a>
+      }
     }
   </section>
 
   <section class="session {{ sessionKind() }}">
     <div>
-      <p class="tile-kicker">GET /api/me</p>
-      <h2>Identidad en el BFF</h2>
+      <p class="tile-kicker">Tu cuenta</p>
+      <h2>Sesión</h2>
       <p class="me-status">{{ meStatus() }}</p>
-      @if (bffUser()) {
-        <p class="me-user"><strong>Usuario (BFF):</strong> {{ bffUser() }}</p>
-      } @else {
-        <p class="me-user"><strong>Usuario (MSAL):</strong> {{ name() }}</p>
-      }
+      <p class="me-user"><strong>Usuario:</strong> {{ bffUser() || name() }}</p>
       <p class="me-roles">
-        <strong>Roles:</strong>
-        @if (bffRoles().length > 0) {
-          {{ bffRoles().join(', ') }}
-          <span class="source">(desde backend)</span>
-        } @else if (tokenRoles().length > 0) {
-          {{ tokenRoles().join(', ') }}
-          <span class="source">(desde token Azure; esperando respuesta del BFF)</span>
+        <strong>Perfil:</strong>
+        @if (roles().length > 0) {
+          {{ roles().join(', ') }}
         } @else {
-          sin rol
+          sin perfil asignado
         }
       </p>
-      <p class="me-hint">El request lleva <code>Authorization: Bearer</code> al API Gateway.</p>
     </div>
-    @if (meBody()) {
-      <details>
-        <summary>Respuesta de /api/me</summary>
-        <pre>{{ meBody() }}</pre>
-      </details>
-    }
   </section>
 </app-shell>

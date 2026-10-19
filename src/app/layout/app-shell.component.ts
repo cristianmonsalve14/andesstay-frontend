@@ -1,7 +1,13 @@
 import { Component, computed, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { MsalService } from '@azure/msal-angular';
-import { canCreateReservation, rolesFromAccount } from '../auth/role.util';
+import {
+  canCreateReservation,
+  canViewAudit,
+  canViewCatalog,
+  canViewReservations,
+  rolesFromAccount,
+} from '../auth/role.util';
 
 @Component({
   selector: 'app-shell',
@@ -15,7 +21,10 @@ export class AppShellComponent {
 
   readonly account = this.msal.instance.getActiveAccount();
   readonly rolesList = computed(() => rolesFromAccount(this.account));
+  readonly showCatalog = computed(() => canViewCatalog(this.rolesList()));
+  readonly showReservations = computed(() => canViewReservations(this.rolesList()));
   readonly showNewReservation = computed(() => canCreateReservation(this.rolesList()));
+  readonly showAudit = computed(() => canViewAudit(this.rolesList()));
   readonly name = this.account?.name ?? this.account?.username ?? 'Usuario';
   readonly displayName = computed(() => {
     const roles = this.rolesList();

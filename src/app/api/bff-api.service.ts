@@ -2,6 +2,9 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { asAuditEvents, type AuditEvent } from './audit.mapper';
+
+export type { AuditEvent };
 
 export type BffCallStatus =
   | 'idle'
@@ -21,6 +24,42 @@ export interface BffCallResult {
   raw: string;
 }
 
+export interface AuditRiskItem {
+  label: string;
+  status: string;
+  severity: string;
+}
+
+export interface AuditMetrics {
+  asOf: string;
+  occupationPercent: number;
+  reservationsToday: number;
+  checkInsToday: number;
+  incidentsOpen: number;
+  incidentsNeedReview: number;
+  completenessPercent: number;
+  availabilityPercent: number;
+  paymentsConfirmed: number;
+  cancellations: number;
+  risks: AuditRiskItem[];
+}
+
+export interface AuditMetricsResult {
+  status: BffCallStatus;
+  httpStatus: number;
+  path: string;
+  message: string;
+  metrics: AuditMetrics | null;
+}
+
+export interface AuditEventsResult {
+  status: BffCallStatus;
+  httpStatus: number;
+  path: string;
+  message: string;
+  items: AuditEvent[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class BffApiService {
   private readonly http = inject(HttpClient);
@@ -33,11 +72,16 @@ export class BffApiService {
     return this.get(`${environment.apiUrl}/reservations`, '/api/reservations');
   }
 
+  /** Contrato ms-reservations: CreateReservationRequest (enrich: unitName, guests, customerName) */
   createReservation(body: {
-    unitId: string;
-    checkIn: string;
-    checkOut: string;
-    guests: number;
+    customerUserId: string;
+    unitId: number;
+    checkInDate: string;
+    checkOutDate: string;
+    amount: number;
+    unitName?: string;
+    guests?: number;
+    customerName?: string;
   }): Promise<BffCallResult> {
     return this.post(`${environment.apiUrl}/reservations`, '/api/reservations', body);
   }
@@ -46,6 +90,69 @@ export class BffApiService {
     return this.put(`${environment.apiUrl}/reservations/${id}/status`, `/api/reservations/${id}/status`, {
       status,
     });
+  }
+
+  auditMetrics(): Promise<AuditMetricsResult> {
+    const path = '/api/audit/metrics';
+    return this.getJson<unknown>(`${environment.apiUrl}/audit/metrics`, path).then((res) => {
+      if (res.status !== 'ok') {
+        return {
+          status: res.status,
+          httpStatus: res.httpStatus,
+          path,
+          message: res.message,
+          metrics: null,
+        };
+      }
+      return {
+        status: 'ok',
+        httpStatus: res.httpStatus,
+        path,
+        message: 'Indicadores de control disponibles.',
+        metrics: asAuditMetrics(res.data),
+      };
+    });
+  }
+
+  auditEvents(limit = 50): Promise<AuditEventsResult> {
+    const path = '/api/audit/events';
+    const url = `${environment.apiUrl}/audit/events?limit=${limit}`;
+    return this.getJson<unknown>(url, path).then((res) => {
+      if (res.status !== 'ok') {
+        return {
+          status: res.status,
+          httpStatus: res.httpStatus,
+          path,
+          message: res.message,
+          items: [],
+        };
+      }
+      return {
+        status: 'ok',
+        httpStatus: res.httpStatus,
+        path,
+        message: 'Historial de control disponible.',
+        items: asAuditEvents(res.data),
+      };
+    });
+  }
+
+  private async getJson<T>(
+    url: string,
+    path: string,
+  ): Promise<{ status: BffCallStatus; httpStatus: number; message: string; data: T | null }> {
+    try {
+      const data = await firstValueFrom(this.http.get<T>(url));
+      return { status: 'ok', httpStatus: 200, message: 'Información disponible.', data };
+    } catch (err) {
+      const mapped = fromHttpError(err, path);
+      return {
+        status: mapped.status,
+        httpStatus: mapped.httpStatus,
+        message: mapped.message,
+        data: null,
+      };
+    }
   }
 
   private async get(url: string, path: string): Promise<BffCallResult> {
@@ -66,14 +173,14 @@ export class BffApiService {
 
   private async post(url: string, path: string, body: unknown): Promise<BffCallResult> {
     try {
-      const data = await firstValueFrom(this.http.post<unknown>(url, body));
+      const data = await firstValueFrom(this.http.post<unknown>(url, body, { observe: 'response' }));
       return {
         status: 'ok',
-        httpStatus: 200,
+        httpStatus: data.status,
         path,
-        items: asRecords(data),
+        items: asRecords(data.body),
         message: 'Reserva creada correctamente.',
-        raw: stringify(data),
+        raw: stringify(data.body),
       };
     } catch (err) {
       return fromHttpError(err, path);
@@ -125,6 +232,38 @@ function stringify(value: unknown): string {
   } catch {
     return String(value);
   }
+}
+
+function asAuditMetrics(data: unknown): AuditMetrics | null {
+  if (!data || typeof data !== 'object') {
+    return null;
+  }
+  const row = data as Record<string, unknown>;
+  const risksRaw = Array.isArray(row['risks']) ? row['risks'] : [];
+  return {
+    asOf: String(row['asOf'] ?? ''),
+    occupationPercent: num(row['occupationPercent']),
+    reservationsToday: num(row['reservationsToday']),
+    checkInsToday: num(row['checkInsToday']),
+    incidentsOpen: num(row['incidentsOpen']),
+    incidentsNeedReview: num(row['incidentsNeedReview']),
+    completenessPercent: num(row['completenessPercent']),
+    availabilityPercent: num(row['availabilityPercent']),
+    paymentsConfirmed: num(row['paymentsConfirmed']),
+    cancellations: num(row['cancellations']),
+    risks: risksRaw
+      .filter((item): item is Record<string, unknown> => !!item && typeof item === 'object')
+      .map((item) => ({
+        label: String(item['label'] ?? ''),
+        status: String(item['status'] ?? ''),
+        severity: String(item['severity'] ?? 'INFO'),
+      })),
+  };
+}
+
+function num(value: unknown): number {
+  const n = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(n) ? n : 0;
 }
 
 function fromHttpError(err: unknown, path: string): BffCallResult {

@@ -6,22 +6,28 @@ export const UNIT_PHOTOS = [
 
 export const SHOWCASE = [
   {
+    id: 10,
     title: 'Cabaña Cordillera',
     subtitle: 'Cajón del Maipo · 4 huéspedes',
     meta: 'Chimenea · terraza · vista nieve',
     photo: '/photos/cabin-1.png',
+    nightlyRate: 120000,
   },
   {
+    id: 20,
     title: 'Refugio del bosque',
     subtitle: 'Valle andino · 2 huéspedes',
     meta: 'Cama king · cocina · wifi',
     photo: '/photos/cabin-2.png',
+    nightlyRate: 95000,
   },
   {
+    id: 30,
     title: 'Lodge Laguna',
     subtitle: 'Laguna de montaña · 6 huéspedes',
     meta: 'Living amplio · estacionamiento',
     photo: '/photos/cabin-3.png',
+    nightlyRate: 150000,
   },
 ] as const;
 
