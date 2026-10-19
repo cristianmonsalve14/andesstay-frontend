@@ -2,6 +2,9 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { asAuditEvents, type AuditEvent } from './audit.mapper';
+
+export type { AuditEvent };
 
 export type BffCallStatus =
   | 'idle'
@@ -39,17 +42,6 @@ export interface AuditMetrics {
   paymentsConfirmed: number;
   cancellations: number;
   risks: AuditRiskItem[];
-}
-
-export interface AuditEvent {
-  id: number | string;
-  occurredAt: string;
-  actor: string;
-  action: string;
-  resourceType: string;
-  resourceId: string;
-  detail: string;
-  severity: string;
 }
 
 export interface AuditMetricsResult {
@@ -267,19 +259,6 @@ function asAuditMetrics(data: unknown): AuditMetrics | null {
         severity: String(item['severity'] ?? 'INFO'),
       })),
   };
-}
-
-function asAuditEvents(data: unknown): AuditEvent[] {
-  return asRecords(data).map((row) => ({
-    id: (row['id'] as number | string) ?? '',
-    occurredAt: String(row['occurredAt'] ?? ''),
-    actor: String(row['actor'] ?? ''),
-    action: String(row['action'] ?? ''),
-    resourceType: String(row['resourceType'] ?? ''),
-    resourceId: String(row['resourceId'] ?? ''),
-    detail: String(row['detail'] ?? ''),
-    severity: String(row['severity'] ?? 'INFO'),
-  }));
 }
 
 function num(value: unknown): number {

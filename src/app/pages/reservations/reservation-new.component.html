@@ -27,7 +27,7 @@
               name="checkIn"
               type="date"
               [ngModel]="checkIn()"
-              (ngModelChange)="checkIn.set($event)"
+              (ngModelChange)="onCheckInChange($event)"
               required
             />
           </label>
@@ -37,11 +37,14 @@
               name="checkOut"
               type="date"
               [ngModel]="checkOut()"
-              (ngModelChange)="checkOut.set($event)"
+              (ngModelChange)="onCheckOutChange($event)"
               required
             />
           </label>
         </div>
+        @if (dateError()) {
+          <p class="date-error">{{ dateError() }}</p>
+        }
         <label>
           Huéspedes
           <input
@@ -59,11 +62,15 @@
         <div class="summary">
           <p class="summary-kicker">Resumen</p>
           <p><strong>{{ selectedCabin().label }}</strong> · {{ guests() }} huésped(es)</p>
-          <p>{{ nights() }} noche(s) · a nombre de {{ guestDisplayName() }}</p>
-          <p class="total">Total estimado {{ formatClp(amount()) }}</p>
+          @if (nights() > 0) {
+            <p>{{ nights() }} noche(s) · a nombre de {{ guestDisplayName() }}</p>
+            <p class="total">Total estimado {{ formatClp(amount()) }}</p>
+          } @else {
+            <p>Elige un rango de fechas válido para ver el total.</p>
+          }
         </div>
 
-        <button type="submit" [disabled]="sending()">
+        <button type="submit" [disabled]="sending() || !!dateError()">
           {{ sending() ? 'Enviando…' : 'Confirmar reserva' }}
         </button>
       </form>

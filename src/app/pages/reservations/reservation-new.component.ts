@@ -5,6 +5,7 @@ import { MsalService } from '@azure/msal-angular';
 import { BffApiService, BffCallResult } from '../../api/bff-api.service';
 import { AppShellComponent } from '../../layout/app-shell.component';
 import { SHOWCASE } from '../../ui/photos';
+import { isValidStayRange, nightCount } from './reservation-dates';
 
 @Component({
   selector: 'app-reservation-new',
@@ -31,20 +32,42 @@ export class ReservationNewComponent {
   readonly guests = signal(2);
   readonly sending = signal(false);
   readonly result = signal<BffCallResult | null>(null);
+  readonly dateError = signal('');
 
   readonly selectedCabin = computed(() => {
     const match = this.cabinOptions.find((c) => Number(c.value) === Number(this.unitId()));
     return match ?? this.cabinOptions[0]!;
   });
   readonly nights = computed(() => nightCount(this.checkIn(), this.checkOut()));
-  readonly amount = computed(() => (this.selectedCabin()?.nightlyRate ?? 100000) * this.nights());
+  readonly amount = computed(() => {
+    const nights = this.nights();
+    if (nights <= 0) {
+      return 0;
+    }
+    return (this.selectedCabin()?.nightlyRate ?? 100000) * nights;
+  });
   readonly guestDisplayName = computed(() => {
     const account =
       this.msal.instance.getActiveAccount() ?? this.msal.instance.getAllAccounts()[0] ?? null;
     return account?.name ?? account?.username ?? 'Huésped AndesStay';
   });
 
+  onCheckInChange(value: string): void {
+    this.checkIn.set(value);
+    this.validateDates();
+  }
+
+  onCheckOutChange(value: string): void {
+    this.checkOut.set(value);
+    this.validateDates();
+  }
+
   async submit(): Promise<void> {
+    if (!this.validateDates()) {
+      this.result.set(null);
+      return;
+    }
+
     this.sending.set(true);
     const account =
       this.msal.instance.getActiveAccount() ?? this.msal.instance.getAllAccounts()[0] ?? null;
@@ -77,15 +100,19 @@ export class ReservationNewComponent {
       maximumFractionDigits: 0,
     }).format(value);
   }
-}
 
-function nightCount(checkIn: string, checkOut: string): number {
-  if (!checkIn || !checkOut) {
-    return 1;
+  private validateDates(): boolean {
+    const inn = this.checkIn();
+    const out = this.checkOut();
+    if (!inn || !out) {
+      this.dateError.set('Indica la fecha de llegada y de salida.');
+      return false;
+    }
+    if (!isValidStayRange(inn, out)) {
+      this.dateError.set('La salida debe ser posterior a la llegada.');
+      return false;
+    }
+    this.dateError.set('');
+    return true;
   }
-  const start = new Date(`${checkIn}T00:00:00`);
-  const end = new Date(`${checkOut}T00:00:00`);
-  const ms = end.getTime() - start.getTime();
-  const nights = Math.round(ms / (1000 * 60 * 60 * 24));
-  return nights > 0 ? nights : 1;
 }
