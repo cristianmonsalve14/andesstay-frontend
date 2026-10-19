@@ -4,7 +4,7 @@ import { MsalService } from '@azure/msal-angular';
 import { BffApiService, BffCallResult } from '../../api/bff-api.service';
 import { canManageReservationStatus, rolesFromAccount } from '../../auth/role.util';
 import { AppShellComponent } from '../../layout/app-shell.component';
-import { unitPhoto } from '../../ui/photos';
+import { SHOWCASE, unitPhoto } from '../../ui/photos';
 
 @Component({
   selector: 'app-reservations',
@@ -46,12 +46,21 @@ export class ReservationsComponent implements OnInit {
   }
 
   titleOf(row: Record<string, unknown>): string {
-    return field(row, ['unitName', 'unidad', 'name', 'code', 'unitId', 'id']) || 'Estadía AndesStay';
+    const named = field(row, ['unitName', 'unidad', 'name', 'code']);
+    if (named) {
+      return named;
+    }
+    const unitId = field(row, ['unitId']);
+    const cabin = SHOWCASE.find((u) => String(u.id) === unitId);
+    if (cabin) {
+      return cabin.title;
+    }
+    return 'Estadía AndesStay';
   }
 
   datesOf(row: Record<string, unknown>): string {
-    const inn = field(row, ['checkIn', 'check_in', 'from', 'inicio', 'startDate']);
-    const out = field(row, ['checkOut', 'check_out', 'to', 'fin', 'endDate']);
+    const inn = field(row, ['checkInDate', 'checkIn', 'check_in', 'from', 'inicio', 'startDate']);
+    const out = field(row, ['checkOutDate', 'checkOut', 'check_out', 'to', 'fin', 'endDate']);
     if (inn && out) {
       return `${inn} → ${out}`;
     }
@@ -78,7 +87,32 @@ export class ReservationsComponent implements OnInit {
     return guests ? `${guests} huéspedes` : '';
   }
 
+  customerOf(row: Record<string, unknown>): string {
+    return field(row, ['customerName', 'guestName', 'customer', 'nombre']);
+  }
+
+  amountOf(row: Record<string, unknown>): string {
+    const raw = field(row, ['amount', 'total', 'monto']);
+    if (!raw) {
+      return '';
+    }
+    const n = Number(raw);
+    if (!Number.isFinite(n)) {
+      return raw;
+    }
+    return new Intl.NumberFormat('es-CL', {
+      style: 'currency',
+      currency: 'CLP',
+      maximumFractionDigits: 0,
+    }).format(n);
+  }
+
   photoOf(row: Record<string, unknown>, index: number): string {
+    const unitId = field(row, ['unitId']);
+    const cabin = SHOWCASE.find((u) => String(u.id) === unitId);
+    if (cabin) {
+      return cabin.photo;
+    }
     return unitPhoto(index, row);
   }
 

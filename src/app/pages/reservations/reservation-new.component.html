@@ -1,11 +1,11 @@
 <app-shell>
   <section class="book">
     <div class="visual">
-      <img src="/photos/cabin-1.png" alt="Cabaña AndesStay" />
+      <img [src]="selectedCabin().photo || '/photos/cabin-1.png'" [alt]="selectedCabin().label || 'Cabaña AndesStay'" />
       <div class="copy">
         <p class="kicker">Huéspedes</p>
         <h1>Nueva reserva</h1>
-        <p>Elige tu cabaña ideal, define tus fechas y confirma la estadía que deseas vivir.</p>
+        <p>{{ selectedCabin().subtitle || 'Elige tu cabaña, define fechas y confirma tu estadía.' }}</p>
       </div>
     </div>
 
@@ -14,26 +14,55 @@
       <form class="panel" (ngSubmit)="submit()">
         <label>
           Cabaña
-          <select name="unitId" [(ngModel)]="unitId" required>
+          <select name="unitId" [ngModel]="unitId()" (ngModelChange)="unitId.set($event)" required>
             @for (option of cabinOptions; track option.value) {
-              <option [value]="option.value">{{ option.label }}</option>
+              <option [ngValue]="option.value">{{ option.label }}</option>
             }
           </select>
         </label>
         <div class="row">
           <label>
             Llegada
-            <input name="checkIn" type="date" [(ngModel)]="checkIn" required />
+            <input
+              name="checkIn"
+              type="date"
+              [ngModel]="checkIn()"
+              (ngModelChange)="checkIn.set($event)"
+              required
+            />
           </label>
           <label>
             Salida
-            <input name="checkOut" type="date" [(ngModel)]="checkOut" required />
+            <input
+              name="checkOut"
+              type="date"
+              [ngModel]="checkOut()"
+              (ngModelChange)="checkOut.set($event)"
+              required
+            />
           </label>
         </div>
         <label>
           Huéspedes
-          <input name="guests" type="number" min="1" max="12" step="1" [(ngModel)]="guests" required />
+          <input
+            name="guests"
+            type="number"
+            min="1"
+            max="12"
+            step="1"
+            [ngModel]="guests()"
+            (ngModelChange)="guests.set(+$event)"
+            required
+          />
         </label>
+
+        <div class="summary">
+          <p class="summary-kicker">Resumen</p>
+          <p><strong>{{ selectedCabin().label }}</strong> · {{ guests() }} huésped(es)</p>
+          <p>{{ nights() }} noche(s) · a nombre de {{ guestDisplayName() }}</p>
+          <p class="total">Total estimado {{ formatClp(amount()) }}</p>
+        </div>
+
         <button type="submit" [disabled]="sending()">
           {{ sending() ? 'Enviando…' : 'Confirmar reserva' }}
         </button>
@@ -48,12 +77,15 @@
         } @else if (r.status === 'forbidden') {
           <div class="panel warn">
             <h2>Acceso restringido</h2>
-            <p>Este perfil no puede crear reservas.</p>
+            <p>{{ r.message }}</p>
           </div>
         } @else {
           <div class="panel bad">
             <h2>No se pudo completar la reserva</h2>
-            <p>Intenta nuevamente en unos minutos.</p>
+            <p>{{ r.message }}</p>
+            @if (r.httpStatus) {
+              <p class="meta">HTTP {{ r.httpStatus }} · {{ r.path }}</p>
+            }
           </div>
         }
       }

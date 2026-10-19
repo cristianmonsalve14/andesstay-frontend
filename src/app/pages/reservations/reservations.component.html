@@ -13,7 +13,6 @@
   @if (!result()) {
     <p class="panel muted">Cargando reservas…</p>
   } @else if (result()?.status === 'ok') {
-    <p class="badge ok">{{ result()?.message }}</p>
     @if ((result()?.items?.length ?? 0) > 0) {
       <div class="stays">
         @for (row of result()!.items; track $index) {
@@ -25,6 +24,12 @@
               <p>{{ datesOf(row) }}</p>
               @if (guestsOf(row)) {
                 <p>{{ guestsOf(row) }}</p>
+              }
+              @if (customerOf(row)) {
+                <p>A nombre de {{ customerOf(row) }}</p>
+              }
+              @if (amountOf(row)) {
+                <p class="amount">{{ amountOf(row) }}</p>
               }
               @if (canManageStatus()) {
                 <label class="status-picker">

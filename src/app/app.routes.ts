@@ -5,6 +5,7 @@ import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { CatalogComponent } from './pages/catalog/catalog.component';
 import { ReservationsComponent } from './pages/reservations/reservations.component';
 import { ReservationNewComponent } from './pages/reservations/reservation-new.component';
+import { AuditComponent } from './pages/audit/audit.component';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'login' },
@@ -13,5 +14,6 @@ export const routes: Routes = [
   { path: 'catalogo', component: CatalogComponent, canActivate: [MsalGuard] },
   { path: 'reservas/nueva', component: ReservationNewComponent, canActivate: [MsalGuard] },
   { path: 'reservas', component: ReservationsComponent, canActivate: [MsalGuard] },
+  { path: 'auditoria', component: AuditComponent, canActivate: [MsalGuard] },
   { path: '**', redirectTo: 'login' },
 ];

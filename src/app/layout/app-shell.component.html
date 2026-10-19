@@ -9,10 +9,17 @@
     </div>
     <nav>
       <a routerLink="/dashboard" routerLinkActive="active">Inicio</a>
-      <a routerLink="/catalogo" routerLinkActive="active">Catálogo</a>
-      <a routerLink="/reservas" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Reservas</a>
+      @if (showCatalog()) {
+        <a routerLink="/catalogo" routerLinkActive="active">Catálogo</a>
+      }
+      @if (showReservations()) {
+        <a routerLink="/reservas" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Reservas</a>
+      }
       @if (showNewReservation()) {
         <a routerLink="/reservas/nueva" routerLinkActive="active">Nueva</a>
+      }
+      @if (showAudit()) {
+        <a routerLink="/auditoria" routerLinkActive="active">Auditoría</a>
       }
     </nav>
     <button type="button" (click)="logout()">Cerrar sesión</button>
