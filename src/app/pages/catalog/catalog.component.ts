@@ -23,6 +23,7 @@ export class CatalogComponent implements OnInit {
   readonly canManage = signal(false);
   readonly saving = signal(false);
   readonly editingId = signal<string | null>(null);
+  readonly editHint = signal('');
   readonly showcase = SHOWCASE;
 
   formCode = '';
@@ -101,6 +102,7 @@ export class CatalogComponent implements OnInit {
 
   startCreate(): void {
     this.editingId.set(null);
+    this.editHint.set('');
     this.formCode = '';
     this.formName = '';
     this.formRate = 100000;
@@ -111,6 +113,14 @@ export class CatalogComponent implements OnInit {
   startEdit(row: Record<string, unknown>): void {
     const id = this.idOf(row);
     if (!id) {
+      this.actionResult.set({
+        status: 'error',
+        httpStatus: 0,
+        path: '/api/catalog/units',
+        items: [],
+        message: 'No se pudo identificar la unidad para editar.',
+        raw: '',
+      });
       return;
     }
     this.editingId.set(id);
@@ -119,11 +129,16 @@ export class CatalogComponent implements OnInit {
     const rateRaw = field(row, ['rate', 'tarifa', 'price', 'precio', 'nightlyRate']);
     this.formRate = Number(rateRaw) || 100000;
     this.formAvailable = this.availableOf(row) ?? true;
+    this.editHint.set(
+      `Editando ${this.formName || this.formCode}. Cambia la tarifa o la disponibilidad y guarda.`,
+    );
     this.actionResult.set(null);
+    queueMicrotask(() => {
+      document.getElementById('catalog-admin-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
   }
 
   cancelEdit(): void {
-    this.editingId.set(null);
     this.startCreate();
   }
 

@@ -177,6 +177,19 @@ h1 {
   border-radius: 16px;
   padding: 1.2rem 1.35rem;
   margin-bottom: 1.15rem;
+  scroll-margin-top: 1rem;
+}
+
+.admin-panel.editing {
+  border-color: var(--copper);
+  box-shadow: 0 0 0 2px rgba(137, 89, 54, 0.18);
+}
+
+.edit-hint {
+  margin: 0.35rem 0 0;
+  color: var(--forest);
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
 .admin-head {

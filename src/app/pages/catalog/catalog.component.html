@@ -9,11 +9,18 @@
   </section>
 
   @if (canManage()) {
-    <section class="admin-panel">
+    <section
+      id="catalog-admin-panel"
+      class="admin-panel"
+      [class.editing]="!!editingId()"
+    >
       <div class="admin-head">
         <div>
           <p class="section-kicker">Administración</p>
           <h2>{{ editingId() ? 'Editar unidad' : 'Nueva unidad' }}</h2>
+          @if (editHint()) {
+            <p class="edit-hint">{{ editHint() }}</p>
+          }
         </div>
         @if (editingId()) {
           <button type="button" class="ghost-btn" (click)="cancelEdit()">Cancelar edición</button>
