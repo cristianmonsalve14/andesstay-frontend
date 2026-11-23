@@ -4,7 +4,14 @@ import { RouterLink } from '@angular/router';
 import { MsalService } from '@azure/msal-angular';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { rolesFromAccount, isCliente, canCreateReservation } from '../../auth/role.util';
+import { BffApiService } from '../../api/bff-api.service';
+import { fieldOf } from '../../api/unit-profile';
+import {
+  canCreateReservation,
+  canOperateCatalog,
+  isCliente,
+  rolesFromAccount,
+} from '../../auth/role.util';
 import { AppShellComponent } from '../../layout/app-shell.component';
 
 type MePayload = Record<string, unknown>;
@@ -19,10 +26,10 @@ type MePayload = Record<string, unknown>;
 export class DashboardComponent implements OnInit {
   private readonly msal = inject(MsalService);
   private readonly http = inject(HttpClient);
+  private readonly api = inject(BffApiService);
 
   readonly account = signal(this.msal.instance.getActiveAccount());
   readonly name = computed(() => this.account()?.name ?? this.account()?.username ?? 'Usuario');
-  /** Roles del id token (UI local). El cierre de #14 usa los del BFF cuando llegan. */
   readonly tokenRoles = computed(() => rolesFromAccount(this.account()));
   readonly roles = computed(() => {
     const fromBff = this.bffRoles();
@@ -54,53 +61,64 @@ export class DashboardComponent implements OnInit {
       return 'Consulta tus reservas y planea tu próxima escapada.';
     }
     if (roles.includes('Operador')) {
-      return 'Gestiona la operación del hostal con claridad y rapidez.';
+      return 'Escritorio de recepción: estados de reserva, altas y unidades.';
     }
     if (roles.includes('Auditor')) {
       return 'Puedes revisar la operación con una mirada de control. Catálogo y reservas los gestiona recepción.';
     }
     if (roles.includes('Admin')) {
-      return 'Gestiona el catálogo y la operación del hostal con una visión general de reservas.';
+      return 'Administración: inventario, reservas y control.';
     }
     return 'Bienvenido a AndesStay.';
   });
   readonly isGuest = computed(() => isCliente(this.roles()));
+  readonly isStaffDesk = computed(() => canOperateCatalog(this.roles()));
   readonly isOperador = computed(() => this.roles().includes('Operador'));
   readonly isAuditor = computed(() => this.roles().includes('Auditor'));
   readonly isAdmin = computed(() => this.roles().includes('Admin'));
   readonly showNewReservation = computed(() => canCreateReservation(this.roles()));
 
-  readonly meStatus = signal('Comprobando tu sesión…');
-  readonly meHttp = signal<number | null>(null);
   readonly bffUser = signal('');
   readonly bffRoles = signal<string[]>([]);
-  readonly sessionKind = computed(() => {
-    const code = this.meHttp();
-    if (code === 200) {
-      return 'ok';
-    }
-    if (code === 403) {
-      return 'warn';
-    }
-    if (code === 401 || code === 0 || (code != null && code >= 500)) {
-      return 'bad';
-    }
-    if (this.meStatus().includes('sesión')) {
-      return 'bad';
-    }
-    return 'idle';
-  });
+  readonly unitsCount = signal(0);
+  readonly reservationsCount = signal(0);
+  readonly pendingCount = signal(0);
+  readonly inStayCount = signal(0);
+  readonly deskLoading = signal(false);
+  readonly recentRows = signal<Record<string, unknown>[]>([]);
 
   ngOnInit(): void {
     void this.loadMe();
+    if (this.isStaffDesk()) {
+      void this.loadDesk();
+    }
+  }
+
+  statusOf(row: Record<string, unknown>): string {
+    return (fieldOf(row, ['status', 'estado']) || 'CREADA').toUpperCase();
+  }
+
+  titleOf(row: Record<string, unknown>): string {
+    return fieldOf(row, ['unitName', 'unidad', 'name', 'code']) || 'Reserva';
+  }
+
+  guestOf(row: Record<string, unknown>): string {
+    return fieldOf(row, ['customerName', 'customerUserId', 'guest', 'nombre']) || 'Huésped';
+  }
+
+  datesOf(row: Record<string, unknown>): string {
+    const inn = fieldOf(row, ['checkInDate', 'checkIn', 'from']);
+    const out = fieldOf(row, ['checkOutDate', 'checkOut', 'to']);
+    if (inn && out) {
+      return `${inn} → ${out}`;
+    }
+    return inn || out || '—';
   }
 
   private async loadMe(): Promise<void> {
     const account =
       this.msal.instance.getActiveAccount() ?? this.msal.instance.getAllAccounts()[0] ?? null;
     if (!account) {
-      this.meStatus.set('No hay una sesión activa');
-      this.meHttp.set(null);
       return;
     }
     this.msal.instance.setActiveAccount(account);
@@ -118,33 +136,45 @@ export class DashboardComponent implements OnInit {
         })
         .subscribe({
           next: (body) => {
-            this.meHttp.set(200);
-            this.meStatus.set('Sesión activa');
             this.bffUser.set(pickUser(body) || this.name());
             this.bffRoles.set(pickRoles(body));
+            if (canOperateCatalog(this.roles())) {
+              void this.loadDesk();
+            }
           },
-          error: (err: HttpErrorResponse) => this.showHttpError(err),
+          error: (_err: HttpErrorResponse) => {
+            this.bffUser.set('');
+            this.bffRoles.set([]);
+          },
         });
     } catch {
-      this.meHttp.set(null);
-      this.meStatus.set('No se pudo confirmar tu sesión');
+      // roles del token bastan para renderizar
     }
   }
 
-  private showHttpError(err: HttpErrorResponse): void {
-    this.meHttp.set(err.status);
-    this.bffUser.set('');
-    this.bffRoles.set([]);
-    if (err.status === 0) {
-      this.meStatus.set('No pudimos conectar con el servicio');
-    } else if (err.status === 401) {
-      this.meStatus.set('Tu sesión no es válida. Vuelve a iniciar sesión.');
-    } else if (err.status === 403) {
-      this.meStatus.set('No tienes permiso para esta acción');
-    } else if (err.status === 502 || err.status === 503) {
-      this.meStatus.set('El servicio no está disponible por el momento');
-    } else {
-      this.meStatus.set('No se pudo confirmar tu sesión');
+  private async loadDesk(): Promise<void> {
+    this.deskLoading.set(true);
+    try {
+      const [units, reservations] = await Promise.all([
+        this.api.catalogUnits(),
+        this.api.reservations(),
+      ]);
+      if (units.status === 'ok') {
+        this.unitsCount.set(units.items.length);
+      }
+      if (reservations.status === 'ok') {
+        this.reservationsCount.set(reservations.items.length);
+        const pending = reservations.items.filter((row) => {
+          const s = this.statusOf(row);
+          return s === 'CREADA' || s === 'CONFIRMADA' || s === 'CHECKIN_PENDIENTE';
+        }).length;
+        const inStay = reservations.items.filter((row) => this.statusOf(row) === 'EN_ESTADIA').length;
+        this.pendingCount.set(pending);
+        this.inStayCount.set(inStay);
+        this.recentRows.set(reservations.items.slice(0, 6));
+      }
+    } finally {
+      this.deskLoading.set(false);
     }
   }
 }

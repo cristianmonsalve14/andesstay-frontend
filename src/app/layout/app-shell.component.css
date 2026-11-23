@@ -1,7 +1,10 @@
 .shell {
   max-width: 76rem;
   margin: 0 auto;
-  padding: 1.25rem 1.25rem 2rem;
+  padding: 1.25rem 1.25rem 2.5rem;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .top {
@@ -34,6 +37,7 @@
     linear-gradient(225deg, transparent 49%, #c4a574 50%, transparent 51%),
     var(--forest-2);
   border: 1px solid #c4a574;
+  flex-shrink: 0;
 }
 
 .brand {
@@ -104,18 +108,148 @@ button:hover {
   background: rgba(255, 250, 242, 0.12);
 }
 
-footer {
-  margin-top: 2.25rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--line);
-  color: var(--muted);
-  font-size: 0.88rem;
+main {
+  flex: 1;
 }
 
-footer p {
+.site-footer {
+  margin-top: 2.75rem;
+  border-radius: 18px;
+  overflow: hidden;
+  background:
+    linear-gradient(160deg, #163226 0%, var(--forest) 48%, #14261d 100%);
+  color: #e8dfcf;
+  box-shadow: 0 16px 40px rgba(20, 38, 29, 0.22);
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 0.8fr 0.9fr 1.1fr;
+  gap: 1.75rem 1.5rem;
+  padding: 1.75rem 1.5rem 1.4rem;
+}
+
+.footer-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-bottom: 0.75rem;
+}
+
+.footer-logo .brand {
+  font-size: 0.9rem;
+  color: #f0e2c4;
+}
+
+.footer-lead {
   margin: 0;
+  max-width: 22rem;
+  line-height: 1.55;
+  color: #cfc3ae;
+  font-size: 0.92rem;
 }
 
-footer p + p {
-  margin-top: 0.2rem;
+.footer-col h3 {
+  margin: 0 0 0.7rem;
+  font-family: Outfit, "Segoe UI", sans-serif;
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #e0c48a;
+}
+
+.footer-col ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.footer-col a {
+  color: #f3ebe0;
+  text-decoration: none;
+  font-size: 0.92rem;
+}
+
+.footer-col a:hover {
+  color: #e0c48a;
+}
+
+.contact li {
+  color: #cfc3ae;
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.social-note {
+  margin: 0 0 0.85rem;
+  color: #cfc3ae;
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.socials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.social {
+  width: 2.45rem;
+  height: 2.45rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  border: 1px solid rgba(224, 196, 138, 0.35);
+  background: rgba(255, 250, 242, 0.06);
+  color: #f0e2c4;
+  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
+}
+
+.social svg {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.social:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 250, 242, 0.14);
+  border-color: #e0c48a;
+  color: #fff;
+}
+
+.footer-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  padding: 0.9rem 1.5rem;
+  border-top: 1px solid rgba(224, 196, 138, 0.18);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.footer-bar p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #b9ad97;
+}
+
+@media (max-width: 960px) {
+  .footer-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 1.35rem;
+  }
+
+  .footer-bar {
+    flex-direction: column;
+  }
 }

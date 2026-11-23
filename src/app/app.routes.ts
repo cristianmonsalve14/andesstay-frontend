@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { MsalGuard } from '@azure/msal-angular';
 import { RoleGuard } from './auth/role.guard';
+import { LandingComponent } from './pages/landing/landing.component';
 import { LoginComponent } from './pages/login/login.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { CatalogComponent } from './pages/catalog/catalog.component';
@@ -9,7 +10,7 @@ import { ReservationNewComponent } from './pages/reservations/reservation-new.co
 import { AuditComponent } from './pages/audit/audit.component';
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'login' },
+  { path: '', pathMatch: 'full', component: LandingComponent },
   { path: 'login', component: LoginComponent },
   {
     path: 'dashboard',
@@ -41,5 +42,5 @@ export const routes: Routes = [
     canActivate: [MsalGuard, RoleGuard],
     data: { roles: ['Auditor', 'Admin'] },
   },
-  { path: '**', redirectTo: 'login' },
+  { path: '**', redirectTo: '' },
 ];

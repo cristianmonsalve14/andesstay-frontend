@@ -2,9 +2,30 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MsalService } from '@azure/msal-angular';
 import { BffApiService, BffCallResult } from '../../api/bff-api.service';
-import { canManageReservationStatus, rolesFromAccount } from '../../auth/role.util';
+import { PreparationStatus, preparationOf } from '../../api/unit-profile';
+import {
+  canManageReservationStatus,
+  isCliente,
+  rolesFromAccount,
+} from '../../auth/role.util';
 import { AppShellComponent } from '../../layout/app-shell.component';
 import { SHOWCASE, unitPhoto } from '../../ui/photos';
+
+const STATUS_LABELS: Record<string, string> = {
+  CREADA: 'Creada',
+  CONFIRMADA: 'Confirmada',
+  CHECKIN_PENDIENTE: 'Check-in pendiente',
+  EN_ESTADIA: 'En estadía',
+  CHECKOUT: 'Checkout',
+  CANCELADA: 'Cancelada',
+};
+
+const PREP_LABELS: Record<PreparationStatus, string> = {
+  NONE: 'Sin preparación',
+  PENDING: 'Pendiente',
+  IN_PROGRESS: 'En progreso',
+  READY: 'Listo para llegada',
+};
 
 @Component({
   selector: 'app-reservations',
@@ -20,6 +41,8 @@ export class ReservationsComponent implements OnInit {
   readonly result = signal<BffCallResult | null>(null);
   readonly roles = signal<string[]>([]);
   readonly canManageStatus = signal(false);
+  readonly isGuest = signal(false);
+  readonly actionError = signal('');
 
   statusOptionsFor(row: Record<string, unknown>): string[] {
     const current = this.statusOf(row).toUpperCase();
@@ -35,9 +58,25 @@ export class ReservationsComponent implements OnInit {
     return Array.from(new Set([current, ...(transitions[current] ?? [])].filter(Boolean)));
   }
 
+  preparationOptionsFor(row: Record<string, unknown>): PreparationStatus[] {
+    const current = this.preparationOf(row);
+    if (!this.canEditPreparation(row)) {
+      return [current];
+    }
+    const transitions: Record<PreparationStatus, PreparationStatus[]> = {
+      NONE: [],
+      PENDING: ['IN_PROGRESS', 'READY'],
+      IN_PROGRESS: ['READY'],
+      READY: [],
+    };
+    return Array.from(new Set([current, ...transitions[current]]));
+  }
+
   ngOnInit(): void {
-    this.roles.set(rolesFromAccount(this.msal.instance.getActiveAccount()));
-    this.canManageStatus.set(canManageReservationStatus(this.roles()));
+    const roles = rolesFromAccount(this.msal.instance.getActiveAccount());
+    this.roles.set(roles);
+    this.canManageStatus.set(canManageReservationStatus(roles));
+    this.isGuest.set(isCliente(roles));
     void this.load();
   }
 
@@ -80,6 +119,36 @@ export class ReservationsComponent implements OnInit {
     };
 
     return aliases[normalized] ?? normalized;
+  }
+
+  statusLabel(status: string): string {
+    const key = status.toUpperCase();
+    return STATUS_LABELS[key] ?? key;
+  }
+
+  preparationOf(row: Record<string, unknown>): PreparationStatus {
+    return preparationOf(row);
+  }
+
+  preparationLabel(status: PreparationStatus): string {
+    return PREP_LABELS[status];
+  }
+
+  isCabinReady(row: Record<string, unknown>): boolean {
+    return this.preparationOf(row) === 'READY';
+  }
+
+  canEditPreparation(row: Record<string, unknown>): boolean {
+    if (!this.canManageStatus()) {
+      return false;
+    }
+    const reservationStatus = this.statusOf(row);
+    const prep = this.preparationOf(row);
+    const allowedReservation =
+      reservationStatus === 'CONFIRMADA' ||
+      reservationStatus === 'CHECKIN_PENDIENTE' ||
+      reservationStatus === 'EN_ESTADIA';
+    return allowedReservation && (prep === 'PENDING' || prep === 'IN_PROGRESS');
   }
 
   guestsOf(row: Record<string, unknown>): string {
@@ -136,41 +205,95 @@ export class ReservationsComponent implements OnInit {
     void this.updateStatus(id, nextStatus, row);
   }
 
-  private async updateStatus(id: string, nextStatus: string, row: Record<string, unknown>): Promise<void> {
-    const previousStatus = this.statusOf(row);
-    const normalizedNextStatus = nextStatus.toUpperCase();
-    const res = await this.api.updateReservationStatus(id, normalizedNextStatus);
-    if (res.status === 'ok') {
-      row['status'] = normalizedNextStatus;
-      row['estado'] = normalizedNextStatus;
-      const current = this.result();
-      if (current) {
-        this.result.set({
-          ...current,
-          items: current.items.map((item) => {
-            const itemId = item['id'] ?? item['reservationId'];
-            const rowId = row['id'] ?? row['reservationId'];
-            return itemId === rowId
-              ? { ...item, status: normalizedNextStatus, estado: normalizedNextStatus }
-              : item;
-          }),
-        });
-      }
+  changePreparation(row: Record<string, unknown>, event: Event): void {
+    if (!this.canEditPreparation(row)) {
       return;
     }
 
-    row['status'] = previousStatus;
-    row['estado'] = previousStatus;
-    const current = this.result();
-    if (current) {
-      this.result.set({
-        ...current,
-        message: res.message,
-      });
+    const target = event.target as HTMLSelectElement | null;
+    const next = (target?.value || '').toUpperCase() as PreparationStatus;
+    const id = this.idOf(row);
+    if (!id || id === '0' || (next !== 'IN_PROGRESS' && next !== 'READY')) {
+      return;
     }
+
+    const allowed = this.preparationOptionsFor(row);
+    if (!allowed.includes(next)) {
+      return;
+    }
+
+    void this.updatePreparation(id, next, row);
+  }
+
+  private async updateStatus(id: string, nextStatus: string, row: Record<string, unknown>): Promise<void> {
+    this.actionError.set('');
+    const previous = snapshotRow(row);
+    const normalizedNextStatus = nextStatus.toUpperCase();
+    const res = await this.api.updateReservationStatus(id, normalizedNextStatus);
+    if (res.status === 'ok') {
+      this.applyServerRow(row, res.items[0], {
+        status: normalizedNextStatus,
+        estado: normalizedNextStatus,
+        preparationStatus:
+          normalizedNextStatus === 'CONFIRMADA' && preparationOf(row) === 'NONE'
+            ? 'PENDING'
+            : preparationOf(row),
+      });
+      return;
+    }
+
+    restoreRow(row, previous);
+    this.patchResultRow(row, previous);
+    this.actionError.set(res.message || 'No se pudo actualizar el estado.');
+  }
+
+  private async updatePreparation(
+    id: string,
+    next: PreparationStatus,
+    row: Record<string, unknown>,
+  ): Promise<void> {
+    this.actionError.set('');
+    const previous = snapshotRow(row);
+    const res = await this.api.updatePreparation(id, next);
+    if (res.status === 'ok') {
+      this.applyServerRow(row, res.items[0], { preparationStatus: next });
+      return;
+    }
+
+    restoreRow(row, previous);
+    this.patchResultRow(row, previous);
+    this.actionError.set(res.message || 'No se pudo actualizar la preparación.');
+  }
+
+  private applyServerRow(
+    row: Record<string, unknown>,
+    server: Record<string, unknown> | undefined,
+    fallback: Record<string, unknown>,
+  ): void {
+    const merged = { ...row, ...fallback, ...(server ?? {}) };
+    Object.keys(merged).forEach((key) => {
+      row[key] = merged[key];
+    });
+    this.patchResultRow(row, merged);
+  }
+
+  private patchResultRow(row: Record<string, unknown>, patch: Record<string, unknown>): void {
+    const current = this.result();
+    if (!current) {
+      return;
+    }
+    const rowId = row['id'] ?? row['reservationId'];
+    this.result.set({
+      ...current,
+      items: current.items.map((item) => {
+        const itemId = item['id'] ?? item['reservationId'];
+        return itemId === rowId ? { ...item, ...patch } : item;
+      }),
+    });
   }
 
   private async load(): Promise<void> {
+    this.actionError.set('');
     this.result.set(await this.api.reservations());
   }
 }
@@ -183,4 +306,19 @@ function field(row: Record<string, unknown>, keys: string[]): string {
     }
   }
   return '';
+}
+
+function snapshotRow(row: Record<string, unknown>): Record<string, unknown> {
+  return {
+    status: row['status'],
+    estado: row['estado'],
+    preparationStatus: row['preparationStatus'],
+    preparation_status: row['preparation_status'],
+  };
+}
+
+function restoreRow(row: Record<string, unknown>, previous: Record<string, unknown>): void {
+  Object.keys(previous).forEach((key) => {
+    row[key] = previous[key];
+  });
 }

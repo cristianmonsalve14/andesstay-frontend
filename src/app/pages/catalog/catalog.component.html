@@ -2,9 +2,25 @@
   <section class="catalog-hero">
     <img src="/photos/cabin-1.png" alt="Cabañas AndesStay" />
     <div class="hero-copy">
-      <p class="kicker">Operación</p>
-      <h1>Catálogo de unidades</h1>
-      <p>Consulta tarifas y disponibilidad de las cabañas del hostal.</p>
+      <p class="kicker">AndesStay</p>
+      <h1>
+        @if (canManage()) {
+          Inventario de cabañas
+        } @else if (isStaff()) {
+          Unidades en operación
+        } @else {
+          Explora y elige tu cabaña
+        }
+      </h1>
+      <p>
+        @if (canManage()) {
+          Administra unidades, tarifas y disponibilidad.
+        } @else if (isStaff()) {
+          Consulta disponibilidad y registra reservas de recepción sobre unidades reales.
+        } @else {
+          Fotos, ubicación, amenities y tarifa por noche — elige y reserva.
+        }
+      </p>
     </div>
   </section>
 
@@ -40,6 +56,34 @@
           Tarifa (CLP)
           <input name="rate" type="number" min="1" step="1000" [(ngModel)]="formRate" required />
         </label>
+        <label>
+          Ubicación
+          <input name="location" [(ngModel)]="formLocation" placeholder="Cajón del Maipo" />
+        </label>
+        <label>
+          Huéspedes máx.
+          <input name="maxGuests" type="number" min="1" [(ngModel)]="formMaxGuests" />
+        </label>
+        <label>
+          Habitaciones
+          <input name="bedrooms" type="number" min="1" [(ngModel)]="formBedrooms" />
+        </label>
+        <label>
+          Baños
+          <input name="bathrooms" type="number" min="1" [(ngModel)]="formBathrooms" />
+        </label>
+        <label class="wide">
+          URL de foto
+          <input name="imageUrl" [(ngModel)]="formImageUrl" placeholder="https://… o /photos/cabin-1.png" />
+        </label>
+        <label class="wide">
+          Amenities (separadas por comas)
+          <input name="amenities" [(ngModel)]="formAmenities" placeholder="Wifi, Chimenea, Terraza" />
+        </label>
+        <label class="wide">
+          Descripción
+          <textarea name="description" rows="3" [(ngModel)]="formDescription" placeholder="Vista a la cordillera, cocina equipada…"></textarea>
+        </label>
         <label class="check">
           <input name="available" type="checkbox" [(ngModel)]="formAvailable" />
           Disponible para reserva
@@ -66,26 +110,85 @@
   } @else if (result()?.status === 'ok') {
     @if ((result()?.items?.length ?? 0) > 0) {
       <div class="cards">
-        @for (row of result()!.items; track $index) {
+        @for (row of result()!.items; track idOf(row) || $index; let card = $index) {
           <article class="unit">
-            <div class="photo">
-              <img [src]="photoOf(row, $index)" [alt]="titleOf(row)" />
-              @if (availabilityLabel(row)) {
-                <span [class.busy]="availableOf(row) === false">{{ availabilityLabel(row) }}</span>
-              }
+            <div class="gallery">
+              <div class="photo">
+                <img [src]="photoOf(row, card)" [alt]="titleOf(row) + ' — ' + photoLabel(row, card)" />
+                <span class="shot-label">{{ photoLabel(row, card) }}</span>
+                @if (availabilityLabel(row)) {
+                  <span class="avail" [class.busy]="availableOf(row) === false">{{ availabilityLabel(row) }}</span>
+                }
+                <div class="nav">
+                  <button type="button" class="nav-btn" (click)="prevPhoto(row, card, $event)" aria-label="Foto anterior">‹</button>
+                  <button type="button" class="nav-btn" (click)="nextPhoto(row, card, $event)" aria-label="Foto siguiente">›</button>
+                </div>
+              </div>
+              <div class="thumbs" role="list">
+                @for (shot of galleryOf(row, card); track shot.src; let s = $index) {
+                  <button
+                    type="button"
+                    class="thumb"
+                    [class.active]="isActiveShot(card, s)"
+                    (click)="selectPreview(card, s, $event)"
+                    [attr.aria-label]="'Ver ' + shot.label"
+                  >
+                    <img [src]="shot.src" [alt]="shot.label" />
+                    <span>{{ shot.label }}</span>
+                  </button>
+                }
+              </div>
             </div>
             <div class="body">
               <h2>{{ titleOf(row) }}</h2>
-              @if (codeOf(row)) {
+              @if (locationOf(row)) {
+                <p class="place">{{ locationOf(row) }}</p>
+              }
+              @if (canManage() && codeOf(row)) {
                 <p class="meta">Código {{ codeOf(row) }}</p>
               }
+              <p class="facts">
+                @if (guestsOf(row)) {
+                  <span>{{ guestsOf(row) }}</span>
+                }
+                @if (roomsOf(row)) {
+                  <span>{{ roomsOf(row) }}</span>
+                }
+              </p>
+              @if (descriptionOf(row)) {
+                <p class="desc">{{ descriptionOf(row) }}</p>
+              }
+              @if (amenitiesOf(row).length) {
+                <ul class="chips">
+                  @for (item of amenitiesOf(row); track item) {
+                    <li>{{ item }}</li>
+                  }
+                </ul>
+              }
+              @if (isGuest() && mountainTip(row)) {
+                <p class="tip">{{ mountainTip(row) }}</p>
+              }
               @if (rateOf(row)) {
-                <p class="rate">{{ rateOf(row) }} / noche</p>
+                <p class="rate"><strong>{{ rateOf(row) }}</strong> / noche</p>
               }
               @if (canManage()) {
                 <button type="button" class="edit-btn" (click)="startEdit(row)">Editar</button>
+              } @else if (isStaff()) {
+                <a
+                  class="cta"
+                  routerLink="/reservas/nueva"
+                  [queryParams]="reserveQuery(row)"
+                >
+                  Registrar reserva
+                </a>
               } @else {
-                <a routerLink="/reservas/nueva">Reservar esta unidad</a>
+                <a
+                  class="cta"
+                  routerLink="/reservas/nueva"
+                  [queryParams]="reserveQuery(row)"
+                >
+                  Reservar esta unidad
+                </a>
               }
             </div>
           </article>
@@ -102,8 +205,9 @@
             </div>
             <div class="body">
               <h2>{{ unit.title }}</h2>
+              <p class="place">{{ unit.subtitle }}</p>
               <p class="meta">{{ unit.meta }}</p>
-              <p class="rate">Desde {{ unit.nightlyRate }} CLP / noche</p>
+              <p class="rate"><strong>{{ unit.nightlyRate }} CLP</strong> / noche</p>
             </div>
           </article>
         }

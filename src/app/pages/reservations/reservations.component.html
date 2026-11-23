@@ -1,57 +1,141 @@
 <app-shell>
-  <header class="page">
+  <header class="page" [class.staff]="!isGuest()">
     <div>
-      <p class="kicker">Huéspedes</p>
-      <h1>Reservas</h1>
+      <p class="kicker">{{ isGuest() ? 'Tu viaje' : 'Recepción' }}</p>
+      <h1>{{ isGuest() ? 'Mis reservas' : 'Tablero de reservas' }}</h1>
       <p class="lead">
-        Consulta y gestiona las estadías de tus huéspedes con una visión clara de cada reserva.
+        @if (isGuest()) {
+          Consulta el estado de tus estadías y prepara tu próxima escapada.
+        } @else {
+          Ciclo completo: confirmada → check-in → estadía → checkout, más preparación “listo para llegada”.
+        }
       </p>
     </div>
-    <a class="endpoint" routerLink="/reservas/nueva">Nueva reserva</a>
+    <a class="endpoint" routerLink="/reservas/nueva">{{
+      isGuest() ? 'Nueva reserva' : 'Alta en recepción'
+    }}</a>
   </header>
+
+  @if (actionError()) {
+    <p class="panel bad action-error">{{ actionError() }}</p>
+  }
 
   @if (!result()) {
     <p class="panel muted">Cargando reservas…</p>
   } @else if (result()?.status === 'ok') {
     @if ((result()?.items?.length ?? 0) > 0) {
-      <div class="stays">
-        @for (row of result()!.items; track $index) {
-          <article class="stay">
-            <img [src]="photoOf(row, $index)" [alt]="titleOf(row)" />
-            <div>
-              <p class="status">{{ statusOf(row) }}</p>
-              <h2>{{ titleOf(row) }}</h2>
-              <p>{{ datesOf(row) }}</p>
-              @if (guestsOf(row)) {
-                <p>{{ guestsOf(row) }}</p>
-              }
-              @if (customerOf(row)) {
-                <p>A nombre de {{ customerOf(row) }}</p>
-              }
-              @if (amountOf(row)) {
-                <p class="amount">{{ amountOf(row) }}</p>
-              }
-              @if (canManageStatus()) {
-                <label class="status-picker">
-                  Estado
-                  <select [value]="statusOf(row)" (change)="changeStatus(row, $event)">
-                    @for (status of statusOptionsFor(row); track status) {
-                      <option [value]="status">{{ status }}</option>
+      @if (isGuest()) {
+        <div class="stays">
+          @for (row of result()!.items; track $index) {
+            <article class="stay">
+              <img [src]="photoOf(row, $index)" [alt]="titleOf(row)" />
+              <div>
+                <p class="status">{{ statusLabel(statusOf(row)) }}</p>
+                @if (isCabinReady(row)) {
+                  <p class="ready-banner">Listo para tu llegada</p>
+                }
+                <h2>{{ titleOf(row) }}</h2>
+                <p>{{ datesOf(row) }}</p>
+                @if (guestsOf(row)) {
+                  <p>{{ guestsOf(row) }}</p>
+                }
+                @if (amountOf(row)) {
+                  <p class="amount">{{ amountOf(row) }}</p>
+                }
+              </div>
+            </article>
+          }
+        </div>
+      } @else {
+        <div class="board">
+          <table class="ops-table">
+            <thead>
+              <tr>
+                <th>Unidad</th>
+                <th>Huésped</th>
+                <th>Fechas</th>
+                <th>Monto</th>
+                <th>Estado</th>
+                <th>Preparación</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of result()!.items; track $index) {
+                <tr>
+                  <td>
+                    <div class="unit-cell">
+                      <img [src]="photoOf(row, $index)" [alt]="titleOf(row)" />
+                      <strong>{{ titleOf(row) }}</strong>
+                    </div>
+                  </td>
+                  <td>{{ customerOf(row) || '—' }}</td>
+                  <td>{{ datesOf(row) }}</td>
+                  <td>{{ amountOf(row) || '—' }}</td>
+                  <td>
+                    <span class="status-pill" [attr.data-status]="statusOf(row)">{{
+                      statusLabel(statusOf(row))
+                    }}</span>
+                  </td>
+                  <td>
+                    <span
+                      class="prep-pill"
+                      [class.ready]="isCabinReady(row)"
+                      [attr.data-prep]="preparationOf(row)"
+                    >
+                      {{ preparationLabel(preparationOf(row)) }}
+                    </span>
+                  </td>
+                  <td>
+                    @if (canManageStatus()) {
+                      <div class="actions">
+                        <label class="status-picker compact">
+                          <span class="sr">Cambiar estado</span>
+                          <select [value]="statusOf(row)" (change)="changeStatus(row, $event)">
+                            @for (status of statusOptionsFor(row); track status) {
+                              <option [value]="status">{{ statusLabel(status) }}</option>
+                            }
+                          </select>
+                        </label>
+                        @if (canEditPreparation(row)) {
+                          <label class="status-picker compact prep">
+                            <span class="sr">Cambiar preparación</span>
+                            <select
+                              [value]="preparationOf(row)"
+                              (change)="changePreparation(row, $event)"
+                            >
+                              @for (prep of preparationOptionsFor(row); track prep) {
+                                <option [value]="prep">{{ preparationLabel(prep) }}</option>
+                              }
+                            </select>
+                          </label>
+                        } @else if (preparationOf(row) === 'NONE') {
+                          <p class="hint">Confirma la reserva para iniciar preparación</p>
+                        } @else if (isCabinReady(row)) {
+                          <p class="hint ready-text">Cabaña lista</p>
+                        }
+                      </div>
                     }
-                  </select>
-                </label>
+                  </td>
+                </tr>
               }
-            </div>
-          </article>
-        }
-      </div>
+            </tbody>
+          </table>
+        </div>
+      }
     } @else {
       <div class="empty">
         <img src="/photos/cabin-3.png" alt="Cabaña disponible" />
         <div>
-          <h2>Aún no tienes una estadía</h2>
-          <p>Elige la cabaña ideal, las fechas y la cantidad de huéspedes para comenzar tu próxima escapada.</p>
-          <a routerLink="/reservas/nueva">Reservar una cabaña</a>
+          @if (isGuest()) {
+            <h2>Aún no tienes una estadía</h2>
+            <p>Elige la cabaña ideal, las fechas y la cantidad de huéspedes para comenzar tu próxima escapada.</p>
+            <a routerLink="/reservas/nueva">Reservar una cabaña</a>
+          } @else {
+            <h2>No hay reservas cargadas</h2>
+            <p>Cuando un huésped reserve o registres un alta en recepción, aparecerán aquí para cambiar su estado.</p>
+            <a routerLink="/reservas/nueva">Registrar reserva</a>
+          }
         </div>
       </div>
     }
@@ -70,7 +154,7 @@
       <img src="/photos/hero.png" alt="Cabaña AndesStay" />
       <div class="panel bad">
         <h2>Reservas no disponibles</h2>
-        <p>Pronto podrás gestionar todas tus estadías desde aquí.</p>
+        <p>No pudimos cargar el listado. Revisa que el BFF y ms-reservations estén activos.</p>
         <p><a routerLink="/reservas/nueva">Crear una reserva</a></p>
       </div>
     </div>
