@@ -38,7 +38,25 @@ npm start
 
 App: `http://localhost:4200`.
 
-Configura `src/environments/environment.ts` → `apiUrl` apuntando al BFF o Gateway (ej. lab local `http://localhost:8083/api`). **No** subir URLs personales ni secretos a `main`.
+Configura `src/environments/environment.ts` → `apiUrl` apuntando al BFF local (lab). **No** subir URLs personales a `main`. El build de producción usa `environment.prod.ts` (API Gateway + origen EC2).
+
+## Laboratorio EC2 (C-01) — con infra PR #18
+
+El navegador habla con Entra ID, con el FE en el puerto **80** y con el **API Gateway**. No llama a `:8080`.
+
+| Archivo | Rol |
+| --- | --- |
+| `Dockerfile` | Multi-stage: `ng build --configuration=production` + nginx |
+| `nginx.conf` | SPA + `GET /health` (healthcheck del compose) |
+| `environment.prod.ts` | `redirectUri=http://54.211.241.28`, `apiUrl=<execute-api>/prod/api` |
+
+```bash
+docker build -t andesstay/frontend:latest .
+```
+
+**Entra ID (SPA):** Redirect URI y Logout URI = `http://54.211.241.28` (sin client secret).
+
+**Dependencia:** compose de `andesstay-infra` (PR #18) publica el servicio `frontend` en `:80` y CORS `AllowedOriginPublic` a ese origen.
 
 ## Pantallas (tras login)
 
