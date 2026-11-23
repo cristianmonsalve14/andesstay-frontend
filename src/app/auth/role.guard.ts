@@ -23,9 +23,22 @@ export class RoleGuard implements CanActivate {
       return true;
     }
 
-    if (!account || !canAccessRoute(roles, requestedRoles)) {
+    if (!account) {
       return this.router.createUrlTree(['/login'], {
-        queryParams: { redirectUrl: state.url },
+        queryParams: { redirectUrl: state.url, reason: 'auth' },
+      });
+    }
+
+    if (!roles.length) {
+      console.warn('RoleGuard: cuenta sin roles', account.username);
+      return this.router.createUrlTree(['/login'], {
+        queryParams: { reason: 'roles', user: account.username },
+      });
+    }
+
+    if (!canAccessRoute(roles, requestedRoles)) {
+      return this.router.createUrlTree(['/login'], {
+        queryParams: { redirectUrl: state.url, reason: 'forbidden' },
       });
     }
 

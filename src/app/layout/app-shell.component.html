@@ -7,16 +7,18 @@
         <p class="who">{{ displayName() }} <span class="pill">{{ roles }}</span></p>
       </div>
     </div>
-    <nav>
+    <nav aria-label="Principal">
       <a routerLink="/dashboard" routerLinkActive="active">Inicio</a>
       @if (showCatalog()) {
         <a routerLink="/catalogo" routerLinkActive="active">Catálogo</a>
       }
       @if (showReservations()) {
-        <a routerLink="/reservas" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Reservas</a>
+        <a routerLink="/reservas" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">{{
+          reservationsLabel()
+        }}</a>
       }
       @if (showNewReservation()) {
-        <a routerLink="/reservas/nueva" routerLinkActive="active">Nueva</a>
+        <a routerLink="/reservas/nueva" routerLinkActive="active">{{ newReservationLabel() }}</a>
       }
       @if (showAudit()) {
         <a routerLink="/auditoria" routerLinkActive="active">Auditoría</a>
@@ -24,11 +26,134 @@
     </nav>
     <button type="button" (click)="logout()">Cerrar sesión</button>
   </header>
+
   <main>
     <ng-content />
   </main>
-  <footer>
-    <p>AndesStay · Cajón del Maipo</p>
-    <p>Experiencias de alojamiento en la cordillera, diseñadas para descansar y reservar con tranquilidad.</p>
+
+  <footer class="site-footer">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <span class="mark" aria-hidden="true"></span>
+          <p class="brand">AndesStay</p>
+        </div>
+        <p class="footer-lead">
+          Cabañas en la cordillera del Cajón del Maipo. Reserva con tranquilidad y llega a un refugio listo para ti.
+        </p>
+      </div>
+
+      <div class="footer-col">
+        <h3>Explorar</h3>
+        <ul>
+          <li><a routerLink="/dashboard">Inicio</a></li>
+          @if (showCatalog()) {
+            <li><a routerLink="/catalogo">Catálogo</a></li>
+          }
+          @if (showReservations()) {
+            <li><a routerLink="/reservas">Mis reservas</a></li>
+          }
+          @if (showNewReservation()) {
+            <li><a routerLink="/reservas/nueva">Nueva reserva</a></li>
+          }
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h3>Contacto</h3>
+        <ul class="contact">
+          <li>Cajón del Maipo, Chile</li>
+          <li><a href="mailto:hola&#64;andesstay.cl">hola&#64;andesstay.cl</a></li>
+          <li><a href="tel:+56223456789">+56 2 2345 6789</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col social-col">
+        <h3>Síguenos</h3>
+        <p class="social-note">Historias de la cordillera y novedades de llegada.</p>
+        <div class="socials" aria-label="Redes sociales">
+          <a
+            class="social"
+            href="https://www.instagram.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Instagram"
+            title="Instagram"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M7.5 2h9A5.5 5.5 0 0 1 22 7.5v9A5.5 5.5 0 0 1 16.5 22h-9A5.5 5.5 0 0 1 2 16.5v-9A5.5 5.5 0 0 1 7.5 2zm0 2A3.5 3.5 0 0 0 4 7.5v9A3.5 3.5 0 0 0 7.5 20h9a3.5 3.5 0 0 0 3.5-3.5v-9A3.5 3.5 0 0 0 16.5 4h-9zm9.75 1.25a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5zM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"
+              />
+            </svg>
+          </a>
+          <a
+            class="social"
+            href="https://www.facebook.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Facebook"
+            title="Facebook"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M14 9h3V6h-3c-1.7 0-3 1.3-3 3v2H9v3h2v7h3v-7h2.5l.5-3H14V9z"
+              />
+            </svg>
+          </a>
+          <a
+            class="social"
+            href="https://www.tiktok.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="TikTok"
+            title="TikTok"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M14.5 3c.4 2.2 1.8 3.8 4 4.2v2.3c-1.4-.1-2.7-.5-3.8-1.3v5.6c0 3.3-2.6 5.9-5.9 5.9S3 17.1 3 13.8 5.6 7.9 8.9 7.9c.3 0 .6 0 .9.1v2.5c-.3-.1-.6-.1-.9-.1-1.9 0-3.4 1.5-3.4 3.4s1.5 3.4 3.4 3.4 3.4-1.5 3.4-3.4V3h2.2z"
+              />
+            </svg>
+          </a>
+          <a
+            class="social"
+            href="https://wa.me/56223456789"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="WhatsApp"
+            title="WhatsApp"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm0 1.82c4.46 0 8.09 3.63 8.09 8.09 0 4.46-3.63 8.09-8.09 8.09-1.42 0-2.8-.37-4.01-1.07l-.29-.17-3.12.82.83-3.04-.18-.3a8.05 8.05 0 0 1-1.23-4.33c0-4.46 3.63-8.09 8.09-8.09zm4.63 10.4c-.25-.13-1.49-.74-1.72-.82-.23-.08-.4-.13-.57.13-.17.25-.65.82-.8 1-.15.17-.29.19-.54.06-.25-.13-1.05-.39-2-1.23-.74-.66-1.23-1.47-1.38-1.72-.15-.25-.02-.38.11-.51.12-.12.25-.29.38-.44.13-.15.17-.25.25-.42.08-.17.04-.32-.02-.44-.06-.13-.57-1.37-.78-1.88-.2-.48-.41-.42-.57-.43h-.48c-.17 0-.44.06-.67.32-.23.25-.88.86-.88 2.1 0 1.24.9 2.43 1.03 2.6.13.17 1.77 2.7 4.29 3.79.6.26 1.07.41 1.44.53.6.19 1.15.16 1.58.1.48-.07 1.49-.61 1.7-1.2.21-.59.21-1.1.15-1.2-.06-.11-.23-.17-.48-.3z"
+              />
+            </svg>
+          </a>
+          <a
+            class="social"
+            href="https://www.youtube.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="YouTube"
+            title="YouTube"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M23.5 7.2s-.2-1.6-.9-2.3c-.9-.9-1.9-.9-2.4-1C16.9 3.5 12 3.5 12 3.5h0s-4.9 0-8.2.4c-.5.1-1.5.1-2.4 1-.7.7-.9 2.3-.9 2.3S.2 9.1.2 11v1.9c0 1.9.3 3.8.3 3.8s.2 1.6.9 2.3c.9.9 2.1.9 2.6 1 1.9.2 8 .4 8 .4s4.9 0 8.2-.4c.5-.1 1.5-.1 2.4-1 .7-.7.9-2.3.9-2.3s.3-1.9.3-3.8V11c0-1.9-.3-3.8-.3-3.8zM9.8 15.1V8.9l6.2 3.1-6.2 3.1z"
+              />
+            </svg>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bar">
+      <p>© {{ year }} AndesStay · Cajón del Maipo</p>
+      <p>Alojamiento en la cordillera · reserva segura con Microsoft Entra ID</p>
+    </div>
   </footer>
 </div>

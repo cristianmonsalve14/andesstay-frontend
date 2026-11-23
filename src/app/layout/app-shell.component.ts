@@ -3,9 +3,11 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { MsalService } from '@azure/msal-angular';
 import {
   canCreateReservation,
+  canOperateCatalog,
   canViewAudit,
   canViewCatalog,
   canViewReservations,
+  isCliente,
   rolesFromAccount,
 } from '../auth/role.util';
 
@@ -25,6 +27,10 @@ export class AppShellComponent {
   readonly showReservations = computed(() => canViewReservations(this.rolesList()));
   readonly showNewReservation = computed(() => canCreateReservation(this.rolesList()));
   readonly showAudit = computed(() => canViewAudit(this.rolesList()));
+  readonly isGuest = computed(() => isCliente(this.rolesList()));
+  readonly isStaff = computed(() => canOperateCatalog(this.rolesList()));
+  readonly reservationsLabel = computed(() => (this.isGuest() ? 'Mis reservas' : 'Reservas'));
+  readonly newReservationLabel = computed(() => (this.isStaff() ? 'Alta' : 'Nueva'));
   readonly name = this.account?.name ?? this.account?.username ?? 'Usuario';
   readonly displayName = computed(() => {
     const roles = this.rolesList();
@@ -43,6 +49,7 @@ export class AppShellComponent {
     return this.name;
   });
   readonly roles = this.rolesList().join(', ') || 'sin rol';
+  readonly year = new Date().getFullYear();
 
   logout(): void {
     this.msal.logoutRedirect();

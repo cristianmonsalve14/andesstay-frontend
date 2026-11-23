@@ -7,174 +7,150 @@
         <h1>Hola, {{ name() }}</h1>
         <p class="lede">{{ headline() }}</p>
         <div class="cta-row">
-          <a class="cta" routerLink="/reservas/nueva">Reservar una cabaña</a>
-          <a class="ghost" routerLink="/reservas">Ver mis reservas</a>
+          <a class="cta" routerLink="/catalogo">Ver cabañas</a>
+          <a class="ghost" routerLink="/reservas">Mis reservas</a>
         </div>
       </div>
     </section>
-  } @else {
-    <section class="ops-hero">
-      <img src="/photos/cabin-2.png" alt="Interior AndesStay" />
-      <div>
-        <p class="kicker">Backoffice</p>
-        <h1>Hola, {{ displayName() }}</h1>
-        <p class="lede">{{ headline() }}</p>
-        <p class="role-note">Rol: <strong>{{ roles().join(', ') }}</strong></p>
-      </div>
-    </section>
-  }
 
-  @if (isOperador()) {
-    <section class="operator-panel">
-      <div class="operator-header">
-        <div>
-          <p class="kicker">Panel operativo</p>
-          <h2>Gestión del día</h2>
-        </div>
-        <button class="mini-action" type="button">Ver agenda</button>
-      </div>
-
-      <div class="stats-row">
-        <article class="metric-card accent">
-          <span>Reservas activas</span>
-          <strong>18</strong>
-          <small>+3 respecto a ayer</small>
-        </article>
-        <article class="metric-card">
-          <span>Check-in hoy</span>
-          <strong>6</strong>
-          <small>2 pendientes</small>
-        </article>
-        <article class="metric-card">
-          <span>Ocupación</span>
-          <strong>82%</strong>
-          <small>Excelente nivel</small>
-        </article>
-        <article class="metric-card">
-          <span>Incidencias</span>
-          <strong>2</strong>
-          <small>Sin riesgo</small>
-        </article>
-      </div>
-
-      <div class="operator-grid">
-        <article class="list-card">
-          <div class="card-title-row">
-            <h3>Llegadas del día</h3>
-            <span class="badge success">Confirmadas</span>
-          </div>
-          <ul class="simple-list">
-            <li><span>Villa del Sol</span><strong>14:00</strong></li>
-            <li><span>Mirador Forestal</span><strong>15:30</strong></li>
-            <li><span>Río Encantado</span><strong>16:00</strong></li>
-          </ul>
-        </article>
-
-        <article class="list-card">
-          <div class="card-title-row">
-            <h3>Seguimiento</h3>
-            <span class="badge">Pendientes</span>
-          </div>
-          <ul class="simple-list">
-            <li><span>Preparar cabaña 3</span><strong>En curso</strong></li>
-            <li><span>Confirmar desayuno</span><strong>Hoy</strong></li>
-            <li><span>Revisión de pagos</span><strong>3</strong></li>
-          </ul>
-        </article>
-      </div>
-    </section>
-  }
-
-  <section class="grid">
-    @if (isGuest()) {
-      <a class="tile featured" routerLink="/reservas">
-        <img src="/photos/cabin-1.png" alt="" />
-        <div class="tile-body">
-          <p class="tile-kicker">Principal</p>
-          <h2>Mis reservas</h2>
-          <p>Consulta el estado de tus estadías y gestiona tu próxima experiencia.</p>
-          <span>Ver reservas</span>
-        </div>
-      </a>
-      <a class="tile" routerLink="/reservas/nueva">
-        <img src="/photos/cabin-3.png" alt="" />
-        <div class="tile-body">
-          <p class="tile-kicker">Pedir</p>
-          <h2>Nueva reserva</h2>
-          <p>Elige fechas, unidad y huéspedes para tu próxima escapada.</p>
-          <span>Crear reserva</span>
-        </div>
-      </a>
-    } @else if (isAuditor()) {
-      <a class="tile featured" routerLink="/auditoria">
-        <img src="/photos/cabin-2.png" alt="" />
-        <div class="tile-body">
-          <p class="tile-kicker">Tu espacio</p>
-          <h2>Vista de auditoría</h2>
-          <p>
-            Este perfil no gestiona catálogo ni reservas. Revisa indicadores e historial de control del hostal.
-          </p>
-          <span>Abrir auditoría</span>
-        </div>
-      </a>
-    } @else {
+    <section class="grid">
       <a class="tile featured" routerLink="/catalogo">
         <img src="/photos/cabin-1.png" alt="" />
         <div class="tile-body">
-          <p class="tile-kicker">Operación</p>
+          <p class="tile-kicker">Explorar</p>
           <h2>Catálogo</h2>
-          <p>Unidades publicadas y activas para la operación del hostal.</p>
-          <span>Abrir catálogo</span>
+          <p>Fotos, amenities y tarifas para elegir tu cabaña.</p>
+          <span>Ver cabañas</span>
         </div>
       </a>
       <a class="tile" routerLink="/reservas">
         <img src="/photos/cabin-3.png" alt="" />
         <div class="tile-body">
-          <p class="tile-kicker">Huéspedes</p>
-          <h2>Reservas</h2>
-          <p>Consulta y gestiona las estadías de los huéspedes.</p>
-          <span>Abrir reservas</span>
+          <p class="tile-kicker">Principal</p>
+          <h2>Mis reservas</h2>
+          <p>Consulta el estado de tus estadías.</p>
+          <span>Ver reservas</span>
         </div>
       </a>
-      @if (showNewReservation()) {
-        <a class="tile" routerLink="/reservas/nueva">
-          <img src="/photos/hero.png" alt="" />
-          <div class="tile-body">
-            <p class="tile-kicker">Alta</p>
-            <h2>Nueva reserva</h2>
-            <p>Registra una nueva estadía de forma rápida y sencilla.</p>
-            <span>Crear reserva</span>
-          </div>
-        </a>
-      }
-      @if (isAdmin()) {
-        <a class="tile" routerLink="/auditoria">
-          <img src="/photos/cabin-2.png" alt="" />
-          <div class="tile-body">
-            <p class="tile-kicker">Control</p>
-            <h2>Auditoría</h2>
-            <p>Indicadores e historial de eventos de la operación.</p>
-            <span>Abrir auditoría</span>
-          </div>
-        </a>
-      }
-    }
-  </section>
+      <a class="tile" routerLink="/reservas/nueva">
+        <img src="/photos/cabin-2.png" alt="" />
+        <div class="tile-body">
+          <p class="tile-kicker">Pedir</p>
+          <h2>Nueva reserva</h2>
+          <p>Elige fechas, unidad y huéspedes.</p>
+          <span>Crear reserva</span>
+        </div>
+      </a>
+    </section>
+  } @else if (isStaffDesk()) {
+    <section class="desk">
+      <header class="desk-head">
+        <div>
+          <p class="kicker">{{ isAdmin() ? 'Administración' : 'Recepción' }}</p>
+          <h1>Escritorio operativo</h1>
+          <p class="lede">{{ headline() }}</p>
+        </div>
+        <div class="desk-actions">
+          <a class="cta" routerLink="/reservas/nueva">Alta de reserva</a>
+          <a class="ghost" routerLink="/reservas">Gestionar estados</a>
+        </div>
+      </header>
 
-  <section class="session {{ sessionKind() }}">
-    <div>
-      <p class="tile-kicker">Tu cuenta</p>
-      <h2>Sesión</h2>
-      <p class="me-status">{{ meStatus() }}</p>
-      <p class="me-user"><strong>Usuario:</strong> {{ bffUser() || name() }}</p>
-      <p class="me-roles">
-        <strong>Perfil:</strong>
-        @if (roles().length > 0) {
-          {{ roles().join(', ') }}
-        } @else {
-          sin perfil asignado
-        }
-      </p>
-    </div>
-  </section>
+      <div class="kpi-row">
+        <article class="kpi">
+          <span>Unidades</span>
+          <strong>{{ deskLoading() ? '…' : unitsCount() }}</strong>
+          <small>Catálogo visible</small>
+        </article>
+        <article class="kpi">
+          <span>Reservas</span>
+          <strong>{{ deskLoading() ? '…' : reservationsCount() }}</strong>
+          <small>Total en sistema</small>
+        </article>
+        <article class="kpi accent">
+          <span>Por atender</span>
+          <strong>{{ deskLoading() ? '…' : pendingCount() }}</strong>
+          <small>Creada / confirmada / check-in</small>
+        </article>
+        <article class="kpi">
+          <span>En estadía</span>
+          <strong>{{ deskLoading() ? '…' : inStayCount() }}</strong>
+          <small>Huéspedes dentro</small>
+        </article>
+      </div>
+
+      <div class="desk-grid">
+        <section class="desk-panel">
+          <div class="panel-title">
+            <h2>Cola de reservas</h2>
+            <a routerLink="/reservas">Abrir tablero</a>
+          </div>
+          @if (deskLoading()) {
+            <p class="muted">Cargando operación…</p>
+          } @else if (recentRows().length === 0) {
+            <p class="muted">Aún no hay reservas. Usa “Alta de reserva” para registrar la primera.</p>
+          } @else {
+            <table class="desk-table">
+              <thead>
+                <tr>
+                  <th>Unidad</th>
+                  <th>Huésped</th>
+                  <th>Fechas</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of recentRows(); track $index) {
+                  <tr>
+                    <td>{{ titleOf(row) }}</td>
+                    <td>{{ guestOf(row) }}</td>
+                    <td>{{ datesOf(row) }}</td>
+                    <td><span class="chip">{{ statusOf(row) }}</span></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+          <p class="hint">
+            Diferencia clave vs Cliente: aquí puedes <strong>cambiar estados</strong> (confirmada, check-in, estadía,
+            checkout) en Reservas.
+          </p>
+        </section>
+
+        <aside class="desk-side">
+          <h2>Herramientas</h2>
+          <a class="tool" routerLink="/reservas">
+            <strong>Tablero de estados</strong>
+            <span>Confirmar llegadas y avanzar el ciclo de la reserva</span>
+          </a>
+          <a class="tool" routerLink="/reservas/nueva">
+            <strong>Alta en recepción</strong>
+            <span>Sí: el Operador crea reservas de mostrador (no es lo mismo que el Cliente reservando para sí)</span>
+          </a>
+          <a class="tool" routerLink="/catalogo">
+            <strong>Unidades en operación</strong>
+            <span>Consultar disponibilidad (editar inventario solo Admin)</span>
+          </a>
+          @if (isAdmin()) {
+            <a class="tool" routerLink="/auditoria">
+              <strong>Auditoría</strong>
+              <span>Indicadores y control</span>
+            </a>
+          }
+        </aside>
+      </div>
+    </section>
+  } @else if (isAuditor()) {
+    <section class="ops-hero">
+      <img src="/photos/cabin-2.png" alt="Auditoría AndesStay" />
+      <div class="stay-copy">
+        <p class="kicker">Control</p>
+        <h1>Vista de auditoría</h1>
+        <p class="lede">{{ headline() }}</p>
+        <div class="cta-row">
+          <a class="cta" routerLink="/auditoria">Abrir auditoría</a>
+        </div>
+      </div>
+    </section>
+  }
 </app-shell>

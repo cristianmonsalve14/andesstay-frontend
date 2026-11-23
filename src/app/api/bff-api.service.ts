@@ -3,8 +3,10 @@ import { inject, Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { asAuditEvents, type AuditEvent } from './audit.mapper';
+import type { CatalogUnitBody, PreparationStatus } from './unit-profile';
 
 export type { AuditEvent };
+export type { CatalogUnitBody, PreparationStatus };
 
 export type BffCallStatus =
   | 'idle'
@@ -68,13 +70,8 @@ export class BffApiService {
     return this.get(`${environment.apiUrl}/catalog/units`, '/api/catalog/units');
   }
 
-  /** Contrato ms-catalog: code, name, rate, available */
-  createCatalogUnit(body: {
-    code: string;
-    name: string;
-    rate: number;
-    available: boolean;
-  }): Promise<BffCallResult> {
+  /** Contrato ms-catalog CAT-01: code/name/rate/available + perfil opcional */
+  createCatalogUnit(body: CatalogUnitBody): Promise<BffCallResult> {
     return this.post(
       `${environment.apiUrl}/catalog/units`,
       '/api/catalog/units',
@@ -83,15 +80,7 @@ export class BffApiService {
     );
   }
 
-  updateCatalogUnit(
-    id: string,
-    body: {
-      code: string;
-      name: string;
-      rate: number;
-      available: boolean;
-    },
-  ): Promise<BffCallResult> {
+  updateCatalogUnit(id: string, body: CatalogUnitBody): Promise<BffCallResult> {
     return this.put(
       `${environment.apiUrl}/catalog/units/${id}`,
       `/api/catalog/units/${id}`,
@@ -129,6 +118,16 @@ export class BffApiService {
       `/api/reservations/${id}/status`,
       { status },
       'Estado actualizado correctamente.',
+    );
+  }
+
+  /** RES-01: body `status` (PreparationStatusRequest del MS). */
+  updatePreparation(id: string, status: PreparationStatus): Promise<BffCallResult> {
+    return this.put(
+      `${environment.apiUrl}/reservations/${id}/preparation`,
+      `/api/reservations/${id}/preparation`,
+      { status },
+      'Preparación de cabaña actualizada.',
     );
   }
 
